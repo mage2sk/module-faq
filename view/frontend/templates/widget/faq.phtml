@@ -1,0 +1,464 @@
+<?php
+/**
+ * FAQ Widget Template - Redesigned to match main FAQ page
+ *
+ * @category  Panth
+ * @package   Panth_Faq
+ * @author    Panth
+ * @copyright Copyright (c) 2025 Panth
+ *
+ * @var $block \Panth\Faq\Block\Widget\Faq
+ * @var $escaper \Magento\Framework\Escaper
+ */
+
+// Check if widget should be displayed
+if (!$block->shouldDisplay()) {
+    return;
+}
+
+$faqItems = $block->getFaqItems();
+$title = $block->getTitle();
+$faqUrl = $block->getFaqUrl();
+$showViewAll = $block->shouldShowViewAllLink();
+?>
+
+<div class="panth-faq-module">
+<div class="faq-wrapper widget-faq-section">
+    <div class="faq-header">
+        <h2 class="faq-title"><?= $escaper->escapeHtml($title) ?></h2>
+    </div>
+
+    <!-- Search Box -->
+    <div class="faq-filters">
+        <div class="faq-search">
+            <form id="widget-faq-search-form" onsubmit="return false;">
+                <div class="search-field">
+                    <input type="text"
+                           name="q"
+                           id="widget-faq-search-input"
+                           placeholder="<?= $escaper->escapeHtmlAttr(__('Search FAQs...')) ?>"
+                           class="input-text" />
+                    <button type="button" class="action search" id="widget-faq-search-btn">
+                        <span><?= $escaper->escapeHtml(__('Search')) ?></span>
+                    </button>
+                    <button type="button" class="action clear" id="widget-faq-clear-btn" style="display: none;">
+                        <span><?= $escaper->escapeHtml(__('Clear')) ?></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="faq-content">
+        <div class="faq-items-list">
+            <?php foreach ($faqItems as $item): ?>
+                <div class="faq-item"
+                     data-faq-id="<?= (int)$item->getId() ?>"
+                     data-question="<?= $escaper->escapeHtmlAttr(strtolower($item->getQuestion())) ?>"
+                     data-answer="<?= $escaper->escapeHtmlAttr(strtolower(strip_tags($item->getAnswer()))) ?>">
+                    <div class="faq-item-header" role="button" tabindex="0">
+                        <h3 class="faq-question"><?= $escaper->escapeHtml($item->getQuestion()) ?></h3>
+                        <span class="faq-toggle-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+                    </div>
+                    <div class="faq-item-content" style="display: none;">
+                        <div class="faq-answer">
+                            <?= /* @noEscape */ $item->getAnswer() ?>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+
+    <?php if ($showViewAll): ?>
+        <div class="faq-view-all">
+            <a href="<?= $escaper->escapeUrl($faqUrl) ?>" class="action view-all-faqs">
+                <span><?= $escaper->escapeHtml(__('View All FAQs')) ?></span>
+            </a>
+        </div>
+    <?php endif; ?>
+</div>
+</div>
+
+<!-- FAQ Accordion for Hyva theme -->
+<script>
+if (typeof require === 'undefined') {
+    // Hyva theme - initialize accordion directly
+    document.addEventListener('DOMContentLoaded', function() {
+        var wrapper = document.querySelector('.widget-faq-section');
+        if (!wrapper) return;
+
+        var headers = wrapper.querySelectorAll('.faq-item-header');
+        headers.forEach(function(header) {
+            header.addEventListener('click', function() {
+                var item = header.closest('.faq-item');
+                var content = item.querySelector('.faq-item-content');
+                var isOpen = content.style.display === 'block';
+
+                // Toggle current item
+                if (isOpen) {
+                    content.style.display = 'none';
+                    item.classList.remove('active');
+                } else {
+                    content.style.display = 'block';
+                    item.classList.add('active');
+                }
+            });
+
+            // Handle keyboard navigation
+            header.addEventListener('keypress', function(e) {
+                if (e.which === 13 || e.which === 32) { // Enter or Space
+                    e.preventDefault();
+                    header.click();
+                }
+            });
+        });
+    });
+}
+</script>
+
+<script type="text/x-magento-init">
+{
+    ".widget-faq-section": {
+        "Panth_Faq/js/faq": {
+            "defaultOpen": false
+        }
+    }
+}
+</script>
+
+<script>
+(function() {
+    'use strict';
+
+    function initFaqSearch() {
+        var searchInput = document.getElementById('widget-faq-search-input');
+        var searchBtn = document.getElementById('widget-faq-search-btn');
+        var clearBtn = document.getElementById('widget-faq-clear-btn');
+        var faqItems = document.querySelectorAll('.widget-faq-section .faq-item');
+        var noResults = null;
+
+        if (!searchInput || !searchBtn || !clearBtn) {
+            return;
+        }
+
+        // Search functionality
+        function performSearch() {
+            var query = searchInput.value.toLowerCase().trim();
+
+            if (query === '') {
+                showAllItems();
+                clearBtn.style.display = 'none';
+                return;
+            }
+
+            var hasResults = false;
+
+            faqItems.forEach(function(item) {
+                var question = item.getAttribute('data-question') || '';
+                var answer = item.getAttribute('data-answer') || '';
+
+                if (question.indexOf(query) !== -1 || answer.indexOf(query) !== -1) {
+                    item.style.display = '';
+                    hasResults = true;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            if (!hasResults) {
+                showNoResults();
+            } else {
+                hideNoResults();
+            }
+
+            clearBtn.style.display = '';
+        }
+
+        function showAllItems() {
+            faqItems.forEach(function(item) {
+                item.style.display = '';
+            });
+            hideNoResults();
+        }
+
+        function showNoResults() {
+            if (!noResults) {
+                noResults = document.createElement('div');
+                noResults.className = 'message info empty';
+                noResults.innerHTML = '<div>No FAQs found matching your search.</div>';
+                var faqContent = document.querySelector('.widget-faq-section .faq-content');
+                if (faqContent) {
+                    faqContent.insertBefore(noResults, faqContent.firstChild);
+                }
+            }
+            if (noResults) {
+                noResults.style.display = '';
+            }
+        }
+
+        function hideNoResults() {
+            if (noResults) {
+                noResults.style.display = 'none';
+            }
+        }
+
+        function clearSearch() {
+            searchInput.value = '';
+            showAllItems();
+            clearBtn.style.display = 'none';
+        }
+
+        // Event handlers
+        searchBtn.addEventListener('click', performSearch);
+        clearBtn.addEventListener('click', clearSearch);
+
+        searchInput.addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            } else if (e.key === 'Escape') {
+                clearSearch();
+            }
+        });
+
+        // Real-time search as you type (debounced)
+        var searchTimeout;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                performSearch();
+            }, 300);
+        });
+    }
+
+    // Initialize when DOM is ready - compatible with both Hyva and Luma
+    if (typeof require !== 'undefined' && typeof define !== 'undefined') {
+        // Luma theme with RequireJS
+        require(['jquery'], function($) {
+            $(document).ready(function() {
+                initFaqSearch();
+            });
+        });
+    } else {
+        // Hyva theme or vanilla JS
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                initFaqSearch();
+            });
+        } else {
+            initFaqSearch();
+        }
+    }
+})();
+</script>
+
+<style>
+/* Widget FAQ Custom Styling */
+.widget-faq-section {
+    margin: 40px 0;
+    padding: 30px;
+    background: #f9f9f9;
+    border-radius: 8px;
+}
+
+.widget-faq-section .faq-header {
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.widget-faq-section .faq-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #333;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+.widget-faq-section .faq-filters {
+    margin-bottom: 25px;
+    padding: 20px;
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.widget-faq-section .faq-search .search-field {
+    display: flex;
+    gap: 10px;
+}
+
+.widget-faq-section .faq-search input {
+    flex: 1;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.widget-faq-section .faq-search button.action {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.widget-faq-section .faq-search button.action.search {
+    background: #1979c3;
+    color: #fff;
+}
+
+.widget-faq-section .faq-search button.action.search:hover {
+    background: #006bb4;
+}
+
+.widget-faq-section .faq-search button.action.clear {
+    background: #f5f5f5;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+.widget-faq-section .faq-search button.action.clear:hover {
+    background: #e9e9e9;
+}
+
+.widget-faq-section .faq-content {
+    background: #fff;
+    border-radius: 6px;
+    padding: 20px;
+}
+
+.widget-faq-section .faq-items-list {
+    border-top: none;
+}
+
+.widget-faq-section .faq-item {
+    margin-bottom: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    background: #ffffff;
+    transition: box-shadow 0.3s ease;
+}
+
+.widget-faq-section .faq-item:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.widget-faq-section .faq-item-header {
+    padding: 18px 20px;
+}
+
+.widget-faq-section .faq-question {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+}
+
+.widget-faq-section .faq-view-all {
+    text-align: center;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.widget-faq-section .view-all-faqs {
+    display: inline-block;
+    padding: 12px 30px;
+    background: #1979c3;
+    color: #ffffff;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.widget-faq-section .view-all-faqs:hover {
+    background: #006bb4;
+    color: #ffffff;
+    text-decoration: none;
+    transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .widget-faq-section {
+        padding: 15px 10px;
+        margin: 20px 0;
+        border-radius: 4px;
+    }
+
+    .widget-faq-section .faq-header {
+        margin-bottom: 15px;
+    }
+
+    .widget-faq-section .faq-title {
+        font-size: 18px;
+        letter-spacing: 0.3px;
+    }
+
+    .widget-faq-section .faq-filters {
+        margin-bottom: 15px;
+        padding: 12px;
+    }
+
+    .widget-faq-section .faq-search .search-field {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .widget-faq-section .faq-search input {
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+
+    .widget-faq-section .faq-search button.action {
+        width: 100%;
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+
+    .widget-faq-section .faq-content {
+        padding: 12px;
+        border-radius: 4px;
+    }
+
+    .widget-faq-section .faq-item {
+        margin-bottom: 10px;
+        border-radius: 4px;
+    }
+
+    .widget-faq-section .faq-item-header {
+        padding: 12px 14px;
+    }
+
+    .widget-faq-section .faq-question {
+        font-size: 14px;
+        line-height: 1.4;
+    }
+
+    .widget-faq-section .faq-item-content {
+        padding: 0 14px 12px;
+    }
+
+    .widget-faq-section .faq-answer {
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .widget-faq-section .faq-view-all {
+        margin-top: 15px;
+        padding-top: 15px;
+    }
+
+    .widget-faq-section .view-all-faqs {
+        width: 100%;
+        display: block;
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+}
+</style>

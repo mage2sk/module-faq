@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Panth FAQ Events Configuration
+ *
+ * @category  Panth
+ * @package   Panth_Faq
+ * @author    Panth
+ * @copyright Copyright (c) 2025 Panth
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+
+    <!-- FAQ Item URL Rewrite Generation -->
+    <event name="panth_faq_item_save_after">
+        <observer name="faq_item_url_rewrite" instance="Panth\Faq\Observer\ItemUrlRewriteObserver"/>
+    </event>
+
+    <!-- FAQ Category URL Rewrite Generation -->
+    <event name="panth_faq_category_save_after">
+        <observer name="faq_category_url_rewrite" instance="Panth\Faq\Observer\CategoryUrlRewriteObserver"/>
+    </event>
+
+</config>

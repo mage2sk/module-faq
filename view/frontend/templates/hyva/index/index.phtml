@@ -1,0 +1,375 @@
+<?php
+/**
+ * FAQ Index Template - Hyva Compatible
+ * Search + Category Filter work via AJAX (no page reload)
+ *
+ * @var $block \Panth\Faq\Block\Index\Index
+ */
+
+$searchQuery = $block->getSearchQuery();
+$selectedCategory = $block->getSelectedCategory();
+$categories = $block->getFaqCategories();
+$isSearchEnabled = $block->isSearchEnabled();
+$isCategoryFilterEnabled = $block->isCategoryFilterEnabled();
+$showCategoryDesc = $block->showCategoryDescription();
+$showViewCount = $block->showViewCount();
+$isHelpfulVotingEnabled = $block->isHelpfulVotingEnabled();
+$isDefaultOpen = $block->isDefaultOpen();
+$formKey = $block->getFormKey();
+$searchUrl = $block->getUrl('faq/ajax/search');
+$voteUrl = $block->getUrl('faq/vote/submit');
+
+// Build categories data for Alpine
+$categoriesData = [];
+foreach ($categories as $cat) {
+    $categoriesData[] = [
+        'id' => (int)$cat->getId(),
+        'name' => $cat->getName(),
+        'description' => $cat->getDescription() ?: '',
+    ];
+}
+?>
+
+<div class="faq-wrapper panth-faq-module"
+     x-data="faqPage()"
+     x-init="init()">
+
+    <h1 class="text-3xl md:text-4xl font-bold mb-8" style="color: var(--color-fg, #171717);">
+        <?= $block->escapeHtml(__('Frequently Asked Questions')) ?>
+    </h1>
+
+    <?php if ($isSearchEnabled || $isCategoryFilterEnabled): ?>
+        <div class="faq-filters mb-8">
+            <?php if ($isSearchEnabled): ?>
+                <div class="faq-search mb-4">
+                    <div class="flex gap-2">
+                        <input type="text"
+                               x-model="searchQuery"
+                               placeholder="<?= $block->escapeHtmlAttr(__('Search FAQs...')) ?>"
+                               @input.debounce.400ms="onSearch()"
+                               @keydown.escape="clearSearch()"
+                               class="flex-1 px-4 py-2.5 text-sm border rounded-lg
+                                      border-[color:var(--color-container-darker,#e5e5e5)]
+                                      focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none
+                                      bg-[color:var(--color-surface,#fff)]
+                                      text-[color:var(--color-fg,#171717)]" />
+                        <button type="button"
+                                @click="onSearch()"
+                                class="px-3 md:px-5 py-2.5 text-sm font-medium rounded-lg transition flex-shrink-0"
+                                style="background: var(--color-primary, #0D9488); color: var(--color-on-primary, #fff);"
+                                :disabled="searching">
+                            <span x-show="!searching">
+                                <svg class="w-5 h-5 md:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                <span class="hidden md:inline"><?= $block->escapeHtml(__('Search')) ?></span>
+                            </span>
+                            <span x-show="searching">
+                                <svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </span>
+                        </button>
+                        <button type="button"
+                                x-show="searchQuery.length > 0"
+                                @click="clearSearch()"
+                                class="p-2.5 border rounded-lg transition flex-shrink-0"
+                                style="border-color: var(--color-container-darker, #e5e5e5);"
+                                title="<?= $block->escapeHtmlAttr(__('Clear search')) ?>">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div x-show="searchMode && searchResults" x-transition class="mt-3">
+                        <p class="text-sm" style="color: var(--color-fg-secondary, #525252);"
+                           x-text="(searchResults ? searchResults.length : 0) + ' result' + ((searchResults && searchResults.length !== 1) ? 's' : '') + ' found'"></p>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($isCategoryFilterEnabled && count($categoriesData) > 0): ?>
+                <div class="faq-category-filter">
+                    <div class="font-semibold mb-3" style="color: var(--color-fg, #171717);">
+                        <?= $block->escapeHtml(__('Filter by Category:')) ?>
+                    </div>
+                    <div class="flex flex-nowrap gap-2 overflow-x-auto pb-3" style="-webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; scrollbar-width: thin; scrollbar-color: var(--color-primary, #0D9488) #E5E7EB;">
+                        <button type="button"
+                                @click="filterCategory(0)"
+                                :class="activeCategory === 0
+                                    ? 'bg-primary text-on-primary border-primary'
+                                    : 'border-[color:var(--color-container-darker,#e5e5e5)] text-[color:var(--color-fg,#171717)] hover:border-primary'"
+                                class="px-4 py-2 rounded-full border transition font-medium text-sm whitespace-nowrap flex-shrink-0 scroll-snap-align-start">
+                            <?= $block->escapeHtml(__('All')) ?>
+                        </button>
+                        <?php foreach ($categoriesData as $cat): ?>
+                            <button type="button"
+                                    @click="filterCategory(<?= (int)$cat['id'] ?>)"
+                                    :class="activeCategory === <?= (int)$cat['id'] ?>
+                                        ? 'bg-primary text-on-primary border-primary'
+                                        : 'border-[color:var(--color-container-darker,#e5e5e5)] text-[color:var(--color-fg,#171717)] hover:border-primary'"
+                                    class="px-4 py-2 rounded-full border transition font-medium text-sm whitespace-nowrap flex-shrink-0 scroll-snap-align-start">
+                                <?= $block->escapeHtml($cat['name']) ?>
+                            </button>
+                        <?php endforeach; ?>
+                    </div>
+                    <style>
+                        .scrollbar-hide { scrollbar-width: none; -ms-overflow-style: none; }
+                        .scrollbar-hide::-webkit-scrollbar { display: none; }
+                    </style>
+                </div>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+
+    <!-- Search Results (shown when searching) -->
+    <div x-show="searchMode" x-transition class="faq-content">
+        <template x-if="searchResults && searchResults.length === 0">
+            <div class="rounded-lg p-4" style="background: var(--color-primary-lighter, #F0FDFA); border: 1px solid var(--color-primary, #0D9488); color: var(--color-fg, #171717);">
+                <?= $block->escapeHtml(__('No FAQs found matching your search. Try different keywords.')) ?>
+            </div>
+        </template>
+        <div class="faq-items-list space-y-3">
+            <template x-for="item in (searchResults || [])" :key="item.id">
+                <div class="faq-item rounded-lg border overflow-hidden transition hover:shadow-sm"
+                     style="border-color: var(--color-container-darker, #e5e5e5); background: var(--color-surface, #fff);"
+                     x-data="{ open: false }">
+                    <div class="faq-item-header cursor-pointer p-4 flex items-center justify-between transition"
+                         @click="open = !open"
+                         style="background: var(--color-container, #f5f5f5);"
+                         role="button" tabindex="0"
+                         @keydown.enter="open = !open"
+                         :aria-expanded="open">
+                        <h3 class="text-base font-semibold pr-4 flex-1" style="color: var(--color-fg, #171717);" x-text="item.question"></h3>
+                        <span class="flex-shrink-0 w-6 h-6 flex items-center justify-center transition-transform duration-300"
+                              :class="{ 'rotate-180': open }"
+                              style="color: var(--color-fg-secondary, #525252);">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </span>
+                    </div>
+                    <div x-show="open" x-transition>
+                        <div class="p-4 prose max-w-none" style="color: var(--color-fg-secondary, #525252);" x-html="item.answer"></div>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <!-- Regular FAQ Content (shown when NOT searching) -->
+    <div x-show="!searchMode" class="faq-content">
+        <?php
+        // Group items by category for rendering
+        $allCategories = $block->getFaqCategories();
+        ?>
+        <?php if ($allCategories->getSize() > 0): ?>
+            <?php foreach ($allCategories as $category): ?>
+                <div class="faq-category-section mb-10"
+                     x-show="activeCategory === 0 || activeCategory === <?= (int)$category->getId() ?>"
+                     x-transition
+                     id="category-<?= (int)$category->getId() ?>">
+                    <div class="category-header mb-6">
+                        <h2 class="text-2xl font-bold mb-2" style="color: var(--color-fg, #171717);">
+                            <?= $block->escapeHtml($category->getName()) ?>
+                        </h2>
+                        <?php if ($showCategoryDesc && $category->getDescription()): ?>
+                            <div class="prose max-w-none" style="color: var(--color-fg-secondary, #525252);">
+                                <?= /* @noEscape */ $category->getDescription() ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <?php $items = $block->getFaqItemsByCategory($category->getId()); ?>
+
+                    <?php if ($items->getSize() > 0): ?>
+                        <div class="faq-items-list space-y-3">
+                            <?php foreach ($items as $item): ?>
+                                <div class="faq-item rounded-lg border overflow-hidden transition hover:shadow-sm"
+                                     style="border-color: var(--color-container-darker, #e5e5e5); background: var(--color-surface, #fff);"
+                                     x-data="{ open: <?= $isDefaultOpen ? 'true' : 'false' ?> }"
+                                     id="faq-<?= (int)$item->getId() ?>">
+                                    <div class="faq-item-header cursor-pointer p-4 flex items-center justify-between transition"
+                                         @click="open = !open"
+                                         :style="open ? 'background: var(--color-container, #f5f5f5)' : ''"
+                                         role="button" tabindex="0"
+                                         @keydown.enter="open = !open"
+                                         :aria-expanded="open">
+                                        <h3 class="text-base font-semibold pr-4 flex-1" style="color: var(--color-fg, #171717);">
+                                            <?= $block->escapeHtml($item->getQuestion()) ?>
+                                        </h3>
+                                        <span class="flex-shrink-0 w-6 h-6 flex items-center justify-center transition-transform duration-300"
+                                              :class="{ 'rotate-180': open }"
+                                              style="color: var(--color-fg-secondary, #525252);">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                            </svg>
+                                        </span>
+                                    </div>
+                                    <div x-show="open" x-transition>
+                                        <div class="p-4">
+                                            <div class="prose max-w-none mb-4" style="color: var(--color-fg-secondary, #525252);">
+                                                <?= /* @noEscape */ $item->getAnswer() ?>
+                                            </div>
+                                            <?php if ($showViewCount || $isHelpfulVotingEnabled): ?>
+                                                <div class="flex items-center justify-between pt-3 mt-3"
+                                                     style="border-top: 1px solid var(--color-container-darker, #e5e5e5);">
+                                                    <?php if ($showViewCount): ?>
+                                                        <span class="text-xs" style="color: var(--color-fg-muted, #a3a3a3);">
+                                                            <?= $block->escapeHtml(__('%1 views', $item->getViewCount())) ?>
+                                                        </span>
+                                                    <?php endif; ?>
+                                                    <?php if ($isHelpfulVotingEnabled): ?>
+                                                        <div class="flex items-center gap-3 text-sm">
+                                                            <span class="text-xs" style="color: var(--color-fg-secondary, #525252);"><?= $block->escapeHtml(__('Was this helpful?')) ?></span>
+                                                            <button type="button"
+                                                                    @click="submitVote(<?= (int)$item->getId() ?>, 'yes')"
+                                                                    class="helpful-yes inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition"
+                                                                    style="border-color: var(--color-primary, #0D9488); color: var(--color-primary-darker, #0F766E); background: var(--color-surface, #fff);"
+                                                                    data-item-id="<?= (int)$item->getId() ?>">
+                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/></svg>
+                                                                Yes <span class="count">(<?= (int)$item->getHelpfulCount() ?>)</span>
+                                                            </button>
+                                                            <button type="button"
+                                                                    @click="submitVote(<?= (int)$item->getId() ?>, 'no')"
+                                                                    class="helpful-no inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition"
+                                                                    style="border-color: var(--color-container-darker, #e5e5e5); color: var(--color-fg-secondary, #525252); background: var(--color-surface, #fff);"
+                                                                    data-item-id="<?= (int)$item->getId() ?>">
+                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018c.163 0 .326.02.485.06L17 4m-7 10v2a2 2 0 002 2h.095c.5 0 .905-.405.905-.905 0-.714.211-1.412.608-2.006L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5"/></svg>
+                                                                No <span class="count">(<?= (int)$item->getNotHelpfulCount() ?>)</span>
+                                                            </button>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php else: ?>
+                        <div class="rounded-lg p-4" style="background: var(--color-container, #f5f5f5); color: var(--color-fg-secondary, #525252);">
+                            <?= $block->escapeHtml(__('No FAQs available in this category.')) ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <div class="rounded-lg p-4" style="background: var(--color-container, #f5f5f5); color: var(--color-fg-secondary, #525252);">
+                <?= $block->escapeHtml(__('No FAQ categories available.')) ?>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+<script>
+function faqPage() {
+    return {
+        searchQuery: '',
+        searchResults: null,
+        searchMode: false,
+        searching: false,
+        activeCategory: <?= (int)$selectedCategory ?>,
+        formKey: '<?= $block->escapeJs($formKey) ?>',
+
+        init() {
+            // Handle URL hash — scroll to and open specific FAQ
+            if (window.location.hash) {
+                const target = document.querySelector(window.location.hash);
+                if (target) {
+                    setTimeout(() => {
+                        const header = target.querySelector('.faq-item-header');
+                        if (header) header.click();
+                        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 200);
+                }
+            }
+        },
+
+        async onSearch() {
+            const query = this.searchQuery.trim();
+            if (query.length < 2) {
+                this.clearSearch();
+                return;
+            }
+
+            this.searching = true;
+            this.searchMode = true;
+
+            try {
+                const formData = new FormData();
+                formData.append('q', query);
+                if (this.activeCategory > 0) {
+                    formData.append('category', this.activeCategory);
+                }
+
+                const response = await fetch('<?= $block->escapeJs($searchUrl) ?>', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                const data = await response.json();
+                this.searchResults = data.success ? data.results : [];
+            } catch (error) {
+                console.error('FAQ search error:', error);
+                this.searchResults = [];
+            } finally {
+                this.searching = false;
+            }
+        },
+
+        clearSearch() {
+            this.searchQuery = '';
+            this.searchResults = null;
+            this.searchMode = false;
+        },
+
+        filterCategory(catId) {
+            this.activeCategory = catId;
+            // If currently searching, re-search with new category
+            if (this.searchMode && this.searchQuery.length >= 2) {
+                this.onSearch();
+            }
+        },
+
+        async submitVote(itemId, voteType) {
+            const storageKey = 'faq_voted_' + itemId;
+            if (localStorage.getItem(storageKey)) {
+                return;
+            }
+
+            try {
+                const response = await fetch('<?= $block->escapeJs($voteUrl) ?>', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ item_id: itemId, vote: voteType })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    // Update count in DOM
+                    const btns = document.querySelectorAll('[data-item-id="' + itemId + '"]');
+                    btns.forEach(btn => {
+                        btn.disabled = true;
+                        btn.style.opacity = '0.6';
+                    });
+                    const activeBtn = document.querySelector('[data-item-id="' + itemId + '"].helpful-' + voteType);
+                    if (activeBtn) {
+                        const count = activeBtn.querySelector('.count');
+                        if (count) {
+                            const newCount = voteType === 'yes' ? data.helpful_count : data.not_helpful_count;
+                            count.textContent = '(' + newCount + ')';
+                        }
+                    }
+                    localStorage.setItem(storageKey, voteType);
+                }
+            } catch (error) {
+                console.error('Vote error:', error);
+            }
+        }
+    };
+}
+</script>

@@ -1,0 +1,84 @@
+<?php
+/**
+ * FAQ Item View Template
+ *
+ * @category  Panth
+ * @package   Panth_Faq
+ * @author    Panth
+ * @copyright Copyright (c) 2025 Panth
+ *
+ * @var $block \Panth\Faq\Block\Index\View
+ */
+
+$item = $block->getFaqItem();
+$showViewCount = $block->showViewCount();
+$isHelpfulVotingEnabled = $block->isHelpfulVotingEnabled();
+$categories = $block->getFaqCategories();
+?>
+
+<div class="panth-faq-module">
+<div class="faq-view-wrapper">
+    <div class="faq-actions faq-actions-top">
+        <a href="<?= $block->escapeUrl($block->getBackUrl()) ?>" class="action back">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            <span><?= $block->escapeHtml(__('Back to FAQ')) ?></span>
+        </a>
+    </div>
+    <?php if ($item): ?>
+        <div class="faq-item-detail">
+            <div class="faq-item-header">
+                <h1 class="faq-question"><?= $block->escapeHtml($item->getQuestion()) ?></h1>
+                <?php if (!empty($categories)): ?>
+                    <div class="faq-categories">
+                        <span class="categories-label"><?= $block->escapeHtml(__('Categories:')) ?></span>
+                        <?php foreach ($categories as $category): ?>
+                            <a href="<?= $block->escapeUrl($block->getCategoryUrl($category)) ?>"
+                               class="faq-category-badge"
+                               title="<?= $block->escapeHtmlAttr(__('View all FAQs in %1', $category->getName())) ?>">
+                                <?= $block->escapeHtml($category->getName()) ?>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <div class="faq-item-content">
+                <div class="faq-answer">
+                    <?= /* @noEscape */ $item->getAnswer() ?>
+                </div>
+
+                <?php if ($showViewCount): ?>
+                    <div class="faq-meta">
+                        <span class="view-count"><?= $block->escapeHtml(__('Views: %1', $item->getViewCount())) ?></span>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($isHelpfulVotingEnabled): ?>
+                    <div class="faq-helpful">
+                        <span class="helpful-label"><?= $block->escapeHtml(__('Was this helpful?')) ?></span>
+                        <button type="button" class="helpful-btn helpful-yes" data-item-id="<?= (int)$item->getId() ?>">
+                            <?= $block->escapeHtml(__('Yes')) ?> <span class="count">(<?= (int)$item->getHelpfulCount() ?>)</span>
+                        </button>
+                        <button type="button" class="helpful-btn helpful-no" data-item-id="<?= (int)$item->getId() ?>">
+                            <?= $block->escapeHtml(__('No')) ?> <span class="count">(<?= (int)$item->getNotHelpfulCount() ?>)</span>
+                        </button>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+        </div>
+    <?php else: ?>
+        <div class="message error">
+            <div><?= $block->escapeHtml(__('FAQ item not found.')) ?></div>
+        </div>
+    <?php endif; ?>
+</div>
+</div>
+
+<script type="text/x-magento-init">
+{
+    ".panth-faq-module .faq-view-wrapper": {
+        "Panth_Faq/js/faq": {}
+    }
+}
+</script>

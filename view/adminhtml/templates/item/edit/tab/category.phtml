@@ -1,0 +1,63 @@
+<?php
+/**
+ * FAQ Item Category Assignment Grid JavaScript
+ *
+ * @var $block \Panth\Faq\Block\Adminhtml\Item\Edit\Tab\Category
+ */
+?>
+<script>
+require([
+    'jquery',
+    'mage/adminhtml/grid'
+], function($){
+    var gridJsObject = window.<?= $block->escapeJs($block->getGridId()) ?>;
+
+    if (!gridJsObject) {
+        return;
+    }
+
+    // Save the original doFilter function
+    var originalDoFilter = gridJsObject.doFilter;
+
+    // Override the doFilter function to include selected categories
+    gridJsObject.doFilter = function() {
+        var selectedCategories = [];
+        $('#<?= $block->escapeJs($block->getGridId()) ?>_table input[name="in_categories"]:checked').each(function() {
+            selectedCategories.push($(this).val());
+        });
+
+        // Add selected categories to the filter parameters
+        this.addVarToUrl('catalog_categories', selectedCategories.join(','));
+
+        // Call original doFilter
+        originalDoFilter.call(this);
+    };
+
+    // Function to get selected categories for form submission
+    window.getFaqItemCategories = function() {
+        var selected = [];
+        $('#<?= $block->escapeJs($block->getGridId()) ?>_table input[name="in_categories"]:checked').each(function() {
+            selected.push($(this).val());
+        });
+        return selected;
+    };
+
+    // Serialize grid data for form submission
+    var categoryInput = $('#faq_item_form input[name="catalog_categories"]');
+    if (!categoryInput.length) {
+        categoryInput = $('<input type="hidden" name="catalog_categories" />').appendTo('#faq_item_form');
+    }
+
+    // Update hidden input before form submission
+    $('#faq_item_form').on('beforeSubmit', function() {
+        var selected = window.getFaqItemCategories();
+        categoryInput.val(JSON.stringify(selected));
+    });
+
+    // For Save and Continue button
+    $('button[data-ui-id*="save-button"]').on('click', function() {
+        var selected = window.getFaqItemCategories();
+        categoryInput.val(JSON.stringify(selected));
+    });
+});
+</script>

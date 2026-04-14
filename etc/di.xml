@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Panth FAQ Dependency Injection Configuration
+ *
+ * @category  Panth
+ * @package   Panth_Faq
+ * @author    Panth
+ * @copyright Copyright (c) 2025 Panth
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <!-- API Preferences -->
+    <preference for="Panth\Faq\Api\Data\ItemInterface" type="Panth\Faq\Model\Item"/>
+    <preference for="Panth\Faq\Api\Data\CategoryInterface" type="Panth\Faq\Model\Category"/>
+    <preference for="Panth\Faq\Api\ItemRepositoryInterface" type="Panth\Faq\Model\ItemRepository"/>
+    <preference for="Panth\Faq\Api\CategoryRepositoryInterface" type="Panth\Faq\Model\CategoryRepository"/>
+    <preference for="Panth\Faq\Api\Data\ItemSearchResultsInterface" type="Panth\Faq\Model\ItemSearchResults"/>
+    <preference for="Panth\Faq\Api\Data\CategorySearchResultsInterface" type="Panth\Faq\Model\CategorySearchResults"/>
+
+    <!-- UI Component Data Providers -->
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="faq_item_listing_data_source" xsi:type="string">Panth\Faq\Model\ResourceModel\Item\Grid\Collection</item>
+                <item name="faq_category_listing_data_source" xsi:type="string">Panth\Faq\Model\ResourceModel\Category\Grid\Collection</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!-- Real Grid Collection classes (not virtualTypes) -->
+    <!-- Item Grid Collection is defined as actual class in Model/ResourceModel/Item/Grid/Collection.php -->
+
+    <virtualType name="Panth\Faq\Model\ResourceModel\Category\Grid\Collection" type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">panth_faq_category</argument>
+            <argument name="resourceModel" xsi:type="string">Panth\Faq\Model\ResourceModel\Category</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Custom FAQ Logger -->
+    <type name="Panth\Faq\Logger\Handler">
+        <arguments>
+            <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
+        </arguments>
+    </type>
+    <type name="Panth\Faq\Logger\Logger">
+        <arguments>
+            <argument name="name" xsi:type="string">faqLogger</argument>
+            <argument name="handlers" xsi:type="array">
+                <item name="system" xsi:type="object">Panth\Faq\Logger\Handler</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!-- Image Uploader for FAQ Category Icons -->
+    <virtualType name="Panth\Faq\CategoryIconImageUploader" type="Magento\Catalog\Model\ImageUploader">
+        <arguments>
+            <argument name="baseTmpPath" xsi:type="string">panth/faq/category/tmp</argument>
+            <argument name="basePath" xsi:type="string">panth/faq/category</argument>
+            <argument name="allowedExtensions" xsi:type="array">
+                <item name="jpg" xsi:type="string">jpg</item>
+                <item name="jpeg" xsi:type="string">jpeg</item>
+                <item name="gif" xsi:type="string">gif</item>
+                <item name="png" xsi:type="string">png</item>
+                <item name="svg" xsi:type="string">svg</item>
+            </argument>
+            <argument name="allowedMimeTypes" xsi:type="array">
+                <item name="jpg" xsi:type="string">image/jpg</item>
+                <item name="jpeg" xsi:type="string">image/jpeg</item>
+                <item name="gif" xsi:type="string">image/gif</item>
+                <item name="png" xsi:type="string">image/png</item>
+                <item name="svg" xsi:type="string">image/svg+xml</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <type name="Panth\Faq\Controller\Adminhtml\Category\Image\Upload">
+        <arguments>
+            <argument name="imageUploader" xsi:type="object">Panth\Faq\CategoryIconImageUploader</argument>
+        </arguments>
+    </type>
+
+    <!-- Plugin to add FAQ data to product form -->
+    <type name="Magento\Catalog\Ui\DataProvider\Product\Form\ProductDataProvider">
+        <plugin name="panth_faq_product_data_provider" type="Panth\Faq\Plugin\Product\Ui\DataProvider" sortOrder="10"/>
+    </type>
+
+</config>

@@ -1,0 +1,109 @@
+<?php
+/**
+ * Copyright © Panth Infotech. All rights reserved.
+ * Embedded FAQ Template — used on Product, Category, and CMS pages (Hyva)
+ */
+
+// canDisplay() exists on Category\Faq but not on Product\Faq or Page\Faq
+if (method_exists($block, 'canDisplay') && !$block->canDisplay()) {
+    return;
+}
+
+$faqItems = $block->getFaqItems();
+if (!$faqItems || $faqItems->getSize() === 0) {
+    return;
+}
+$title = $block->escapeHtml($block->getTitle());
+$faqListUrl = method_exists($block, 'getFaqListUrl') ? $block->getFaqListUrl() : $block->getUrl('faq');
+$itemCount = (int)$faqItems->getSize();
+?>
+
+<div class="panth-faq-module my-10"
+     x-data="{ query: '', visibleCount: <?= (int)$itemCount ?>, totalCount: <?= (int)$itemCount ?> }">
+
+    <h2 class="text-2xl font-bold mb-6 text-center" style="color: var(--color-fg, #171717);">
+        <?= $block->escapeHtml($title) ?>
+    </h2>
+
+    <!-- Search -->
+    <div class="mb-6 max-w-xl mx-auto">
+        <div class="flex gap-2">
+            <input type="text"
+                   x-model="query"
+                   @input.debounce.300ms="
+                       let q = query.toLowerCase().trim();
+                       let count = 0;
+                       document.querySelectorAll('.faq-embed-item').forEach(el => {
+                           if (!q || (el.dataset.q || '').includes(q) || (el.dataset.a || '').includes(q)) {
+                               el.style.display = ''; count++;
+                           } else {
+                               el.style.display = 'none';
+                           }
+                       });
+                       visibleCount = count;
+                   "
+                   placeholder="<?= $block->escapeHtmlAttr(__('Search FAQs...')) ?>"
+                   class="flex-1 px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                   style="border-color: var(--color-container-darker, #e5e5e5); background: var(--color-surface, #fff); color: var(--color-fg, #171717);" />
+            <button type="button"
+                    x-show="query.length > 0"
+                    @click="query = ''; document.querySelectorAll('.faq-embed-item').forEach(el => el.style.display = ''); visibleCount = totalCount;"
+                    class="px-3 py-2 text-sm border rounded-lg transition"
+                    style="border-color: var(--color-container-darker, #e5e5e5);">
+                <?= $block->escapeHtml(__('Clear')) ?>
+            </button>
+        </div>
+        <p x-show="query.length > 0" x-transition class="text-xs mt-2" style="color: var(--color-fg-muted, #a3a3a3);"
+           x-text="visibleCount + ' of ' + totalCount + ' FAQs shown'"></p>
+    </div>
+
+    <!-- FAQ Items -->
+    <div class="space-y-3">
+        <?php foreach ($faqItems as $item): ?>
+            <div class="faq-embed-item rounded-lg border overflow-hidden transition hover:shadow-sm"
+                 style="border-color: var(--color-container-darker, #e5e5e5); background: var(--color-surface, #fff);"
+                 x-data="{ open: false }"
+                 data-q="<?= $block->escapeHtmlAttr(strtolower($item->getQuestion())) ?>"
+                 data-a="<?= $block->escapeHtmlAttr(strtolower(strip_tags($item->getAnswer()))) ?>">
+                <div class="cursor-pointer p-4 flex items-center justify-between transition"
+                     @click="open = !open"
+                     :style="open ? 'background: var(--color-container, #f5f5f5)' : ''"
+                     role="button" tabindex="0" @keydown.enter="open = !open"
+                     :aria-expanded="open">
+                    <h3 class="text-sm font-semibold pr-4 flex-1" style="color: var(--color-fg, #171717);">
+                        <?= $block->escapeHtml($item->getQuestion()) ?>
+                    </h3>
+                    <span class="flex-shrink-0 w-5 h-5 flex items-center justify-center transition-transform duration-300"
+                          :class="{ 'rotate-180': open }"
+                          style="color: var(--color-fg-secondary, #525252);">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </span>
+                </div>
+                <div x-show="open" x-transition>
+                    <div class="px-4 pb-4 prose prose-sm max-w-none" style="color: var(--color-fg-secondary, #525252);">
+                        <?= /* @noEscape */ $item->getAnswer() ?>
+                    </div>
+                </div>
+            </div>
+        <?php endforeach; ?>
+
+        <div x-show="visibleCount === 0 && query.length > 0" x-transition
+             class="rounded-lg p-4 text-sm text-center"
+             style="background: var(--color-container, #f5f5f5); color: var(--color-fg-secondary, #525252);">
+            <?= $block->escapeHtml(__('No FAQs found matching your search.')) ?>
+        </div>
+    </div>
+
+    <!-- View All Link -->
+    <?php if ($itemCount > 0): ?>
+        <div class="text-center mt-6 pt-4" style="border-top: 1px solid var(--color-container-darker, #e5e5e5);">
+            <a href="<?= $block->escapeUrl($faqListUrl) ?>"
+               class="inline-block px-6 py-2.5 rounded-lg text-sm font-medium transition"
+               style="background: var(--color-primary, #0D9488); color: var(--color-on-primary, #fff);">
+                <?= $block->escapeHtml(__('View All FAQs')) ?>
+            </a>
+        </div>
+    <?php endif; ?>
+</div>

@@ -1,0 +1,420 @@
+<?php
+/**
+ * FAQ Index Template
+ *
+ * @category  Panth
+ * @package   Panth_Faq
+ * @author    Panth
+ * @copyright Copyright (c) 2025 Panth
+ *
+ * @var $block \Panth\Faq\Block\Index\Index
+ */
+
+$searchQuery = $block->getSearchQuery();
+$selectedCategory = $block->getSelectedCategory();
+$categories = $block->getFaqCategories();
+$isSearchEnabled = $block->isSearchEnabled();
+$isCategoryFilterEnabled = $block->isCategoryFilterEnabled();
+$showCategoryDesc = $block->showCategoryDescription();
+$showViewCount = $block->showViewCount();
+$isHelpfulVotingEnabled = $block->isHelpfulVotingEnabled();
+$isDefaultOpen = $block->isDefaultOpen();
+?>
+
+<div class="panth-faq-module">
+<div class="faq-wrapper">
+    <?php if ($isSearchEnabled || $isCategoryFilterEnabled): ?>
+        <div class="faq-filters">
+            <?php if ($isSearchEnabled): ?>
+                <div class="faq-search">
+                    <form action="<?= $block->escapeUrl($block->getUrl('faq/index/index')) ?>" method="get" id="faq-search-form">
+                        <div class="search-field">
+                            <input type="text"
+                                   name="q"
+                                   id="faq-search-input"
+                                   value="<?= $block->escapeHtmlAttr($searchQuery) ?>"
+                                   placeholder="<?= $block->escapeHtmlAttr(__('Search FAQs...')) ?>"
+                                   class="input-text" />
+                            <?php if ($searchQuery): ?>
+                            <a href="<?= $block->escapeUrl($block->getUrl('faq/index/index')) ?>" class="faq-search-clear" title="<?= $block->escapeHtmlAttr(__('Clear')) ?>">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                            </a>
+                            <?php endif; ?>
+                            <button type="submit" class="action search" title="<?= $block->escapeHtmlAttr(__('Search')) ?>">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                                <span><?= $block->escapeHtml(__('Search')) ?></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($isCategoryFilterEnabled && $categories->getSize() > 0): ?>
+                <div class="faq-category-filter">
+                    <div class="filter-label">
+                        <strong><?= $block->escapeHtml(__('Filter by Category:')) ?></strong>
+                    </div>
+                    <div class="filter-options" id="faq-filter-options">
+                        <button type="button" class="filter-option active" data-category-id="0">
+                            <?= $block->escapeHtml(__('All Categories')) ?>
+                        </button>
+                        <?php foreach ($categories as $category): ?>
+                            <button type="button" class="filter-option" data-category-id="<?= (int)$category->getId() ?>">
+                                <?= $block->escapeHtml($category->getName()) ?>
+                            </button>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+
+    <div class="faq-content">
+        <?php if ($searchQuery): ?>
+            <?php
+            $items = $block->search($searchQuery);
+            ?>
+            <div class="search-results-info">
+                <p>
+                    <?= $block->escapeHtml(__('Search results for: "%1"', $searchQuery)) ?>
+                    <span class="results-count">(<?= (int)$items->getSize() ?> <?= $block->escapeHtml(__('results')) ?>)</span>
+                </p>
+            </div>
+
+            <?php if ($items->getSize() > 0): ?>
+                <div class="faq-items-list">
+                    <?php foreach ($items as $item): ?>
+                        <div class="faq-item<?= $isDefaultOpen ? ' active' : '' ?>" data-faq-id="<?= (int)$item->getId() ?>">
+                            <div class="faq-item-header" role="button" tabindex="0">
+                                <h3 class="faq-question"><?= $block->escapeHtml($item->getQuestion()) ?></h3>
+                                <span class="faq-toggle-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+                            </div>
+                            <div class="faq-item-content" style="display: <?= $isDefaultOpen ? 'block' : 'none' ?>;">
+                                <div class="faq-answer">
+                                    <?= /* @noEscape */ $item->getAnswer() ?>
+                                </div>
+                                <?php if ($showViewCount): ?>
+                                    <div class="faq-meta">
+                                        <span class="view-count"><?= $block->escapeHtml(__('Views: %1', $item->getViewCount())) ?></span>
+                                    </div>
+                                <?php endif; ?>
+                                <?php if ($isHelpfulVotingEnabled): ?>
+                                    <div class="faq-helpful">
+                                        <span class="helpful-label"><?= $block->escapeHtml(__('Was this helpful?')) ?></span>
+                                        <button type="button" class="helpful-btn helpful-yes" data-item-id="<?= (int)$item->getId() ?>">
+                                            <?= $block->escapeHtml(__('Yes')) ?> <span class="count">(<?= (int)$item->getHelpfulCount() ?>)</span>
+                                        </button>
+                                        <button type="button" class="helpful-btn helpful-no" data-item-id="<?= (int)$item->getId() ?>">
+                                            <?= $block->escapeHtml(__('No')) ?> <span class="count">(<?= (int)$item->getNotHelpfulCount() ?>)</span>
+                                        </button>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <div class="message info empty">
+                    <div><?= $block->escapeHtml(__('No FAQs found matching your search.')) ?></div>
+                </div>
+            <?php endif; ?>
+
+        <?php else: ?>
+            <?php
+            // Display by categories
+            $categoriesToShow = $selectedCategory > 0
+                ? $categories->addFieldToFilter('category_id', $selectedCategory)
+                : $categories;
+            ?>
+
+            <?php if ($categoriesToShow->getSize() > 0): ?>
+                <?php foreach ($categoriesToShow as $category): ?>
+                    <div class="faq-category-section" id="category-<?= (int)$category->getId() ?>">
+                        <div class="category-header">
+                            <h2 class="category-title"><?= $block->escapeHtml($category->getName()) ?></h2>
+                            <?php if ($showCategoryDesc && $category->getDescription()): ?>
+                                <div class="category-description">
+                                    <?= /* @noEscape */ $category->getDescription() ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <?php $items = $block->getFaqItemsByCategory($category->getId()); ?>
+
+                        <?php if ($items->getSize() > 0): ?>
+                            <div class="faq-items-list">
+                                <?php foreach ($items as $item): ?>
+                                    <div class="faq-item<?= $isDefaultOpen ? ' active' : '' ?>" data-faq-id="<?= (int)$item->getId() ?>">
+                                        <div class="faq-item-header" role="button" tabindex="0">
+                                            <h3 class="faq-question"><?= $block->escapeHtml($item->getQuestion()) ?></h3>
+                                            <span class="faq-toggle-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+                                        </div>
+                                        <div class="faq-item-content" style="display: <?= $isDefaultOpen ? 'block' : 'none' ?>;">
+                                            <div class="faq-answer">
+                                                <?= /* @noEscape */ $item->getAnswer() ?>
+                                            </div>
+                                            <?php if ($showViewCount): ?>
+                                                <div class="faq-meta">
+                                                    <span class="view-count"><?= $block->escapeHtml(__('Views: %1', $item->getViewCount())) ?></span>
+                                                </div>
+                                            <?php endif; ?>
+                                            <?php if ($isHelpfulVotingEnabled): ?>
+                                                <div class="faq-helpful">
+                                                    <span class="helpful-label"><?= $block->escapeHtml(__('Was this helpful?')) ?></span>
+                                                    <button type="button" class="helpful-btn helpful-yes" data-item-id="<?= (int)$item->getId() ?>">
+                                                        <?= $block->escapeHtml(__('Yes')) ?> <span class="count">(<?= (int)$item->getHelpfulCount() ?>)</span>
+                                                    </button>
+                                                    <button type="button" class="helpful-btn helpful-no" data-item-id="<?= (int)$item->getId() ?>">
+                                                        <?= $block->escapeHtml(__('No')) ?> <span class="count">(<?= (int)$item->getNotHelpfulCount() ?>)</span>
+                                                    </button>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php else: ?>
+                            <div class="message info empty">
+                                <div><?= $block->escapeHtml(__('No FAQs available in this category.')) ?></div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="message info empty">
+                    <div><?= $block->escapeHtml(__('No FAQ categories available.')) ?></div>
+                </div>
+            <?php endif; ?>
+        <?php endif; ?>
+
+        <?php
+        // Show uncategorized FAQs at the bottom (if not in search mode)
+        if (!$searchQuery):
+            $uncategorizedItems = $block->getUncategorizedFaqItems();
+            if ($uncategorizedItems->getSize() > 0):
+        ?>
+            <div class="faq-category-section faq-uncategorized-section" id="uncategorized-faqs">
+                <div class="category-header">
+                    <h2 class="category-title"><?= $block->escapeHtml(__('Other FAQs')) ?></h2>
+                    <div class="category-description">
+                        <?= $block->escapeHtml(__('Frequently asked questions not assigned to any specific category.')) ?>
+                    </div>
+                </div>
+
+                <div class="faq-items-list">
+                    <?php foreach ($uncategorizedItems as $item): ?>
+                        <div class="faq-item<?= $isDefaultOpen ? ' active' : '' ?>" data-faq-id="<?= (int)$item->getId() ?>">
+                            <div class="faq-item-header" role="button" tabindex="0">
+                                <h3 class="faq-question"><?= $block->escapeHtml($item->getQuestion()) ?></h3>
+                                <span class="faq-toggle-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+                            </div>
+                            <div class="faq-item-content" style="display: <?= $isDefaultOpen ? 'block' : 'none' ?>;">
+                                <div class="faq-answer">
+                                    <?= /* @noEscape */ $item->getAnswer() ?>
+                                </div>
+                                <?php if ($showViewCount): ?>
+                                    <div class="faq-meta">
+                                        <span class="view-count"><?= $block->escapeHtml(__('Views: %1', $item->getViewCount())) ?></span>
+                                    </div>
+                                <?php endif; ?>
+                                <?php if ($isHelpfulVotingEnabled): ?>
+                                    <div class="faq-helpful">
+                                        <span class="helpful-label"><?= $block->escapeHtml(__('Was this helpful?')) ?></span>
+                                        <button type="button" class="helpful-btn helpful-yes" data-item-id="<?= (int)$item->getId() ?>">
+                                            <?= $block->escapeHtml(__('Yes')) ?> <span class="count">(<?= (int)$item->getHelpfulCount() ?>)</span>
+                                        </button>
+                                        <button type="button" class="helpful-btn helpful-no" data-item-id="<?= (int)$item->getId() ?>">
+                                            <?= $block->escapeHtml(__('No')) ?> <span class="count">(<?= (int)$item->getNotHelpfulCount() ?>)</span>
+                                        </button>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        <?php
+            endif;
+        endif;
+        ?>
+    </div>
+</div>
+</div>
+
+<!-- FAQ Category Filter + Accordion (vanilla JS for Luma) -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    'use strict';
+    var wrapper = document.querySelector('.panth-faq-module .faq-wrapper');
+    if (!wrapper) return;
+
+    // ═══ ACCORDION ═══
+    function initAccordion(container) {
+        var headers = (container || wrapper).querySelectorAll('.faq-item-header');
+        headers.forEach(function(header) {
+            if (header.dataset.accordionBound) return;
+            header.dataset.accordionBound = '1';
+            header.addEventListener('click', function() {
+                var item = header.closest('.faq-item');
+                var content = item.querySelector('.faq-item-content');
+                var isOpen = content.style.display === 'block';
+                content.style.display = isOpen ? 'none' : 'block';
+                item.classList.toggle('active', !isOpen);
+            });
+            header.addEventListener('keypress', function(e) {
+                if (e.which === 13 || e.which === 32) { e.preventDefault(); header.click(); }
+            });
+        });
+    }
+    initAccordion();
+
+    // ═══ CATEGORY FILTER (client-side show/hide) ═══
+    var filterContainer = document.getElementById('faq-filter-options');
+    if (filterContainer) {
+        var buttons = filterContainer.querySelectorAll('.filter-option');
+        var sections = wrapper.querySelectorAll('.faq-category-section');
+        var uncategorized = wrapper.querySelector('.faq-uncategorized-section');
+
+        buttons.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var catId = parseInt(btn.getAttribute('data-category-id')) || 0;
+
+                // Update active state
+                buttons.forEach(function(b) { b.classList.remove('active'); });
+                btn.classList.add('active');
+
+                // Show/hide sections
+                if (catId === 0) {
+                    // Show all
+                    sections.forEach(function(s) { s.style.display = ''; });
+                    if (uncategorized) uncategorized.style.display = '';
+                } else {
+                    sections.forEach(function(s) {
+                        var sectionId = s.getAttribute('id');
+                        if (sectionId === 'category-' + catId) {
+                            s.style.display = '';
+                        } else {
+                            s.style.display = 'none';
+                        }
+                    });
+                    if (uncategorized) uncategorized.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    // ═══ AJAX SEARCH ═══
+    var searchForm = document.getElementById('faq-search-form');
+    var searchInput = document.getElementById('faq-search-input');
+    var contentDiv = wrapper.querySelector('.faq-content');
+
+    if (searchForm && searchInput && contentDiv) {
+        var originalContent = contentDiv.innerHTML;
+        var searchTimeout;
+
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            doSearch();
+        });
+
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            var q = searchInput.value.trim();
+            if (q.length === 0) {
+                contentDiv.innerHTML = originalContent;
+                initAccordion(contentDiv);
+                return;
+            }
+            if (q.length >= 2) {
+                searchTimeout = setTimeout(doSearch, 400);
+            }
+        });
+
+        function doSearch() {
+            var q = searchInput.value.trim();
+            if (q.length < 2) return;
+
+            var formKey = '';
+            var fkMatch = document.cookie.match(/form_key=([^;]+)/);
+            if (fkMatch) formKey = fkMatch[1];
+            var fkEl = document.querySelector('input[name="form_key"]');
+            if (!formKey && fkEl) formKey = fkEl.value;
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '<?= $block->escapeJs($block->getUrl("faq/ajax/search")) ?>');
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onload = function() {
+                try {
+                    var data = JSON.parse(xhr.responseText);
+                    if (data.success) {
+                        renderSearchResults(data.results, q, data.count);
+                    }
+                } catch(ex) {}
+            };
+            xhr.send('q=' + encodeURIComponent(q) + '&form_key=' + formKey);
+        }
+
+        function renderSearchResults(results, query, count) {
+            var html = '<div class="search-results-info"><p>Search results for: "' + escapeHtml(query) + '" <span class="results-count">(' + count + ' results)</span></p></div>';
+            if (!results || results.length === 0) {
+                html += '<div class="message info empty"><div>No FAQs found matching your search.</div></div>';
+            } else {
+                html += '<div class="faq-items-list">';
+                results.forEach(function(item) {
+                    html += '<div class="faq-item" data-faq-id="' + item.id + '">'
+                        + '<div class="faq-item-header" role="button" tabindex="0">'
+                        + '<h3 class="faq-question">' + escapeHtml(item.question) + '</h3>'
+                        + '<span class="faq-toggle-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>'
+                        + '</div>'
+                        + '<div class="faq-item-content" style="display:none;">'
+                        + '<div class="faq-answer">' + item.answer + '</div>'
+                        + '</div></div>';
+                });
+                html += '</div>';
+            }
+            contentDiv.innerHTML = html;
+            initAccordion(contentDiv);
+        }
+
+        function escapeHtml(text) {
+            var d = document.createElement('div');
+            d.appendChild(document.createTextNode(text));
+            return d.innerHTML;
+        }
+    }
+
+    // ═══ HELPFUL VOTING ═══
+    wrapper.addEventListener('click', function(e) {
+        var btn = e.target.closest('.helpful-btn');
+        if (!btn) return;
+        e.preventDefault();
+        var itemId = btn.getAttribute('data-item-id');
+        var voteType = btn.classList.contains('helpful-yes') ? 'yes' : 'no';
+        var storageKey = 'faq_voted_' + itemId;
+        if (localStorage.getItem(storageKey)) return;
+
+        var formKey = '';
+        var fkMatch = document.cookie.match(/form_key=([^;]+)/);
+        if (fkMatch) formKey = fkMatch[1];
+        var fkEl = document.querySelector('input[name="form_key"]');
+        if (!formKey && fkEl) formKey = fkEl.value;
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '<?= $block->escapeJs($block->getUrl("faq/vote/submit")) ?>');
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onload = function() {
+            try {
+                var data = JSON.parse(xhr.responseText);
+                if (data.success) {
+                    var count = btn.querySelector('.count');
+                    var current = parseInt((count.textContent || '0').replace(/[()]/g, '')) || 0;
+                    count.textContent = '(' + (current + 1) + ')';
+                    localStorage.setItem(storageKey, voteType);
+                    btn.closest('.faq-helpful').querySelectorAll('.helpful-btn').forEach(function(b) { b.disabled = true; });
+                }
+            } catch(ex) {}
+        };
+        xhr.send('item_id=' + itemId + '&vote=' + voteType + '&form_key=' + formKey);
+    });
+});
+</script>

@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Panth FAQ Default Configuration
+ *
+ * @category  Panth
+ * @package   Panth_Faq
+ * @author    Panth
+ * @copyright Copyright (c) 2025 Panth
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <panth_faq>
+            <general>
+                <enabled>1</enabled>
+                <faq_route>faq</faq_route>
+                <meta_title>Frequently Asked Questions</meta_title>
+                <meta_description>Find answers to common questions about our products and services</meta_description>
+            </general>
+            <display>
+                <items_per_page>20</items_per_page>
+                <show_category_description>1</show_category_description>
+                <show_search>1</show_search>
+                <show_category_filter>1</show_category_filter>
+                <default_open_faqs>0</default_open_faqs>
+                <show_view_count>0</show_view_count>
+                <enable_helpful_voting>1</enable_helpful_voting>
+            </display>
+            <product_page>
+                <enabled>1</enabled>
+                <title>Frequently Asked Questions</title>
+                <position>tab</position>
+                <limit>10</limit>
+            </product_page>
+            <category_page>
+                <enabled>1</enabled>
+                <title>Category FAQs</title>
+                <position>bottom</position>
+                <limit>10</limit>
+            </category_page>
+            <cms_page>
+                <enabled>1</enabled>
+                <title>FAQs</title>
+            </cms_page>
+            <seo>
+                <enable_schema>1</enable_schema>
+                <canonical_url>1</canonical_url>
+            </seo>
+        </panth_faq>
+    </default>
+</config>

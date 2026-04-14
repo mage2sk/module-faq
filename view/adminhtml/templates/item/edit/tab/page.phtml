@@ -1,0 +1,63 @@
+<?php
+/**
+ * FAQ Item CMS Page Assignment Grid JavaScript
+ *
+ * @var $block \Panth\Faq\Block\Adminhtml\Item\Edit\Tab\Page
+ */
+?>
+<script>
+require([
+    'jquery',
+    'mage/adminhtml/grid'
+], function($){
+    var gridJsObject = window.<?= $block->escapeJs($block->getGridId()) ?>;
+
+    if (!gridJsObject) {
+        return;
+    }
+
+    // Save the original doFilter function
+    var originalDoFilter = gridJsObject.doFilter;
+
+    // Override the doFilter function to include selected pages
+    gridJsObject.doFilter = function() {
+        var selectedPages = [];
+        $('#<?= $block->escapeJs($block->getGridId()) ?>_table input[name="in_pages"]:checked').each(function() {
+            selectedPages.push($(this).val());
+        });
+
+        // Add selected pages to the filter parameters
+        this.addVarToUrl('pages', selectedPages.join(','));
+
+        // Call original doFilter
+        originalDoFilter.call(this);
+    };
+
+    // Function to get selected pages for form submission
+    window.getFaqItemPages = function() {
+        var selected = [];
+        $('#<?= $block->escapeJs($block->getGridId()) ?>_table input[name="in_pages"]:checked').each(function() {
+            selected.push($(this).val());
+        });
+        return selected;
+    };
+
+    // Serialize grid data for form submission
+    var pageInput = $('#faq_item_form input[name="pages"]');
+    if (!pageInput.length) {
+        pageInput = $('<input type="hidden" name="pages" />').appendTo('#faq_item_form');
+    }
+
+    // Update hidden input before form submission
+    $('#faq_item_form').on('beforeSubmit', function() {
+        var selected = window.getFaqItemPages();
+        pageInput.val(JSON.stringify(selected));
+    });
+
+    // For Save and Continue button
+    $('button[data-ui-id*="save-button"]').on('click', function() {
+        var selected = window.getFaqItemPages();
+        pageInput.val(JSON.stringify(selected));
+    });
+});
+</script>

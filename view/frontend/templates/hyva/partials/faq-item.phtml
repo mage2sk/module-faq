@@ -1,0 +1,96 @@
+<?php
+/**
+ * FAQ Item Partial - Hyva Compatible
+ *
+ * @category  Panth
+ * @package   Panth_Faq
+ * @author    Panth
+ * @copyright Copyright (c) 2025 Panth
+ *
+ * @var $block \Magento\Framework\View\Element\Template
+ */
+
+$item = $block->getData('item');
+$showViewCount = $block->getData('showViewCount');
+$isHelpfulVotingEnabled = $block->getData('isHelpfulVotingEnabled');
+$isDefaultOpen = $block->getData('isDefaultOpen');
+$formKey = $block->getData('formKey');
+?>
+
+<div class="faq-item overflow-hidden transition hover:shadow-md <?= $isDefaultOpen ? 'active' : '' ?>"
+     data-faq-id="<?= (int)$item->getId() ?>"
+     id="faq-<?= (int)$item->getId() ?>"
+     x-data="{ open: <?= $isDefaultOpen ? 'true' : 'false' ?> }">
+
+    <div class="faq-item-header cursor-pointer transition p-4 flex items-center justify-between"
+         @click="open = !open; toggleItem($el)"
+         @keydown.enter="open = !open; toggleItem($el)"
+         @keydown.space.prevent="open = !open; toggleItem($el)"
+         role="button"
+         tabindex="0"
+         :aria-expanded="open">
+        <h3 class="faq-question text-lg font-semibold pr-4 flex-1">
+            <?= $block->escapeHtml($item->getQuestion()) ?>
+        </h3>
+        <span class="faq-toggle-icon flex-shrink-0 w-6 h-6 flex items-center justify-center transition-transform"
+              :class="{ 'rotate-180': open }">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+        </span>
+    </div>
+
+    <div class="faq-item-content"
+         x-show="open"
+         x-transition>
+        <div class="p-4">
+            <div class="faq-answer prose max-w-none mb-4">
+                <?= /* @noEscape */ $item->getAnswer() ?>
+            </div>
+
+            <?php if ($showViewCount): ?>
+                <div class="faq-meta text-sm mb-3"
+                     style="color: var(--color-fg-secondary, #525252);">
+                    <svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                    <?= $block->escapeHtml(__('Views: %1', $item->getViewCount())) ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($isHelpfulVotingEnabled): ?>
+                <div class="faq-helpful flex items-center gap-3 pt-3"
+                     style="border-top: 1px solid var(--color-container-darker, #e5e5e5);">
+                    <span class="helpful-label text-sm font-medium"
+                          style="color: var(--color-fg-secondary, #525252);">
+                        <?= $block->escapeHtml(__('Was this helpful?')) ?>
+                    </span>
+                    <button type="button"
+                            class="helpful-btn helpful-yes px-4 py-2 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                            style="background: var(--color-primary-lighter, #CCFBF1);
+                                   color: var(--color-primary-darker, #0F766E);"
+                            data-item-id="<?= (int)$item->getId() ?>"
+                            @click="submitVote(<?= (int)$item->getId() ?>, 'yes', '<?= $block->escapeJs($formKey) ?>')">
+                        <svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/>
+                        </svg>
+                        <?= $block->escapeHtml(__('Yes')) ?>
+                        <span class="count">(<?= (int)$item->getHelpfulCount() ?>)</span>
+                    </button>
+                    <button type="button"
+                            class="helpful-btn helpful-no px-4 py-2 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                            style="background: #fde8e8; color: #991b1b;"
+                            data-item-id="<?= (int)$item->getId() ?>"
+                            @click="submitVote(<?= (int)$item->getId() ?>, 'no', '<?= $block->escapeJs($formKey) ?>')">
+                        <svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018c.163 0 .326.02.485.06L17 4m-7 10v2a2 2 0 002 2h.095c.5 0 .905-.405.905-.905 0-.714.211-1.412.608-2.006L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5"/>
+                        </svg>
+                        <?= $block->escapeHtml(__('No')) ?>
+                        <span class="count">(<?= (int)$item->getNotHelpfulCount() ?>)</span>
+                    </button>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,156 @@
+<?php
+/**
+ * FAQ Category View Template
+ *
+ * @category  Panth
+ * @package   Panth_Faq
+ * @author    Panth
+ * @copyright Copyright (c) 2025 Panth
+ *
+ * @var $block \Panth\Faq\Block\Category\View
+ */
+
+$category = $block->getCategory();
+$items = $block->getFaqItems();
+$isSearchEnabled = $block->isSearchEnabled();
+$showCategoryDesc = $block->showCategoryDescription();
+$showViewCount = $block->showViewCount();
+$isHelpfulVotingEnabled = $block->isHelpfulVotingEnabled();
+$isDefaultOpen = $block->isDefaultOpen();
+?>
+
+<div class="panth-faq-module">
+<div class="faq-wrapper">
+    <div class="faq-actions faq-actions-top">
+        <a href="<?= $block->escapeUrl($block->getBackUrl()) ?>" class="action back">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            <span><?= $block->escapeHtml(__('Back to FAQ')) ?></span>
+        </a>
+    </div>
+    <?php if ($isSearchEnabled): ?>
+        <div class="faq-filters">
+            <div class="faq-search">
+                <form action="<?= $block->escapeUrl($block->getUrl('faq/index/index')) ?>" method="get" id="faq-search-form">
+                    <div class="search-field">
+                        <input type="text"
+                               name="q"
+                               id="faq-search-input"
+                               placeholder="<?= $block->escapeHtmlAttr(__('Search FAQs...')) ?>"
+                               class="input-text" />
+                        <button type="submit" class="action search" title="<?= $block->escapeHtmlAttr(__('Search')) ?>">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                            <span><?= $block->escapeHtml(__('Search')) ?></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <div class="faq-content">
+        <?php if ($category): ?>
+            <div class="faq-category-section" id="category-<?= (int)$category->getId() ?>">
+                <div class="category-header">
+                    <h1 class="category-title"><?= $block->escapeHtml($category->getName()) ?></h1>
+                    <?php if ($showCategoryDesc && $category->getDescription()): ?>
+                        <div class="category-description">
+                            <?= /* @noEscape */ $category->getDescription() ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <?php if ($items->getSize() > 0): ?>
+                    <div class="faq-items-list">
+                        <?php foreach ($items as $item): ?>
+                            <div class="faq-item<?= $isDefaultOpen ? ' active' : '' ?>" data-faq-id="<?= (int)$item->getId() ?>">
+                                <div class="faq-item-header" role="button" tabindex="0">
+                                    <h3 class="faq-question"><?= $block->escapeHtml($item->getQuestion()) ?></h3>
+                                    <span class="faq-toggle-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+                                </div>
+                                <div class="faq-item-content" style="display: <?= $isDefaultOpen ? 'block' : 'none' ?>;">
+                                    <div class="faq-answer">
+                                        <?= /* @noEscape */ $item->getAnswer() ?>
+                                    </div>
+                                    <?php if ($showViewCount): ?>
+                                        <div class="faq-meta">
+                                            <span class="view-count"><?= $block->escapeHtml(__('Views: %1', $item->getViewCount())) ?></span>
+                                        </div>
+                                    <?php endif; ?>
+                                    <?php if ($isHelpfulVotingEnabled): ?>
+                                        <div class="faq-helpful">
+                                            <span class="helpful-label"><?= $block->escapeHtml(__('Was this helpful?')) ?></span>
+                                            <button type="button" class="helpful-btn helpful-yes" data-item-id="<?= (int)$item->getId() ?>">
+                                                <?= $block->escapeHtml(__('Yes')) ?> <span class="count">(<?= (int)$item->getHelpfulCount() ?>)</span>
+                                            </button>
+                                            <button type="button" class="helpful-btn helpful-no" data-item-id="<?= (int)$item->getId() ?>">
+                                                <?= $block->escapeHtml(__('No')) ?> <span class="count">(<?= (int)$item->getNotHelpfulCount() ?>)</span>
+                                            </button>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php else: ?>
+                    <div class="message info empty">
+                        <div><?= $block->escapeHtml(__('No FAQs available in this category.')) ?></div>
+                    </div>
+                <?php endif; ?>
+
+            </div>
+        <?php else: ?>
+            <div class="message error">
+                <div><?= $block->escapeHtml(__('FAQ category not found.')) ?></div>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
+</div>
+
+<!-- FAQ Accordion for Hyva theme -->
+<script>
+if (typeof require === 'undefined') {
+    // Hyva theme - initialize accordion directly
+    document.addEventListener('DOMContentLoaded', function() {
+        var wrapper = document.querySelector('.panth-faq-module .faq-wrapper');
+        if (!wrapper) return;
+
+        var headers = wrapper.querySelectorAll('.faq-item-header');
+        headers.forEach(function(header) {
+            header.addEventListener('click', function() {
+                var item = header.closest('.faq-item');
+                var content = item.querySelector('.faq-item-content');
+                var isOpen = content.style.display === 'block';
+
+                // Toggle current item
+                if (isOpen) {
+                    content.style.display = 'none';
+                    item.classList.remove('active');
+                } else {
+                    content.style.display = 'block';
+                    item.classList.add('active');
+                }
+            });
+
+            // Handle keyboard navigation
+            header.addEventListener('keypress', function(e) {
+                if (e.which === 13 || e.which === 32) { // Enter or Space
+                    e.preventDefault();
+                    header.click();
+                }
+            });
+        });
+    });
+}
+</script>
+
+<script type="text/x-magento-init">
+{
+    ".panth-faq-module .faq-wrapper": {
+        "Panth_Faq/js/faq-ajax-search": {
+            "defaultOpen": <?= $isDefaultOpen ? 'true' : 'false' ?>,
+            "categoryId": <?= $category ? (int)$category->getId() : 0 ?>
+        }
+    }
+}
+</script>

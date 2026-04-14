@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Panth FAQ Admin Routes Configuration
+ *
+ * @category  Panth
+ * @package   Panth_Faq
+ * @author    Panth
+ * @copyright Copyright (c) 2025 Panth
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
+    <router id="admin">
+        <route id="faq" frontName="faq">
+            <module name="Panth_Faq" before="Magento_Backend"/>
+        </route>
+    </router>
+</config>

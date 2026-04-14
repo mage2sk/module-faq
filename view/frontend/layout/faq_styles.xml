@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * FAQ Styles Layout
+ *
+ * @category  Panth
+ * @package   Panth_Faq
+ * @author    Panth
+ * @copyright Copyright (c) 2025 Panth
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <!-- Luma: CSS via _module.less (compiled into styles-m.css) -->
+    <!-- Hyva: CSS loaded via default_hyva.xml -->
+</page>

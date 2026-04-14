@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Hyva Layout — Override Luma templates with Alpine.js versions
+ * For product/category/CMS page embedded FAQs
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <!-- Load FAQ CSS on Hyva (Luma uses _module.less compiled into styles-m.css) -->
+        <css src="Panth_Faq::css/faq.css"/>
+    </head>
+    <body>
+        <!-- FAQ pages use hyva_faq_*.xml handles (Hyva auto-adds hyva_ prefix) -->
+        <!-- Embedded FAQs on product/category/CMS pages -->
+        <referenceBlock name="product.faq"
+                        template="Panth_Faq::hyva/embedded-faq.phtml"/>
+        <referenceBlock name="category.faq"
+                        template="Panth_Faq::hyva/embedded-faq.phtml"/>
+        <referenceBlock name="cms.page.faq"
+                        template="Panth_Faq::hyva/embedded-faq.phtml"/>
+    </body>
+</page>

@@ -1,0 +1,215 @@
+<?php
+/**
+ * Category FAQ Assignment Template
+ *
+ * @var $block \Panth\Faq\Block\Adminhtml\Category\Edit\Tab\FaqList
+ */
+
+$category = $block->getCategory();
+$categoryId = $category ? $category->getId() : 0;
+$faqItems = $block->getFaqItems();
+$selectedIds = $block->getSelectedFaqIds();
+?>
+
+<div class="faq-assignment-wrapper">
+    <div class="admin__field-control" style="margin-bottom: 20px;">
+        <button type="button"
+                id="create-new-faq-btn"
+                class="action-secondary"
+                onclick="window.open('<?= $block->escapeUrl($block->getUrl('faq/item/new')) ?>', '_blank')">
+            <span><?= $block->escapeHtml(__('Create New FAQ Item')) ?></span>
+        </button>
+        <button type="button"
+                id="refresh-faq-list-btn"
+                class="action-secondary"
+                style="margin-left: 10px;">
+            <span><?= $block->escapeHtml(__('Refresh List')) ?></span>
+        </button>
+    </div>
+
+    <div class="admin__field-control">
+        <input type="text"
+               id="faq-search"
+               class="admin__control-text"
+               placeholder="<?= $block->escapeHtmlAttr(__('Search FAQs...')) ?>"
+               style="width: 100%; margin-bottom: 15px;" />
+    </div>
+
+    <div class="faq-items-list" style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 15px; background: #fff;">
+        <?php if (empty($faqItems)): ?>
+            <p><?= $block->escapeHtml(__('No FAQ items available.')) ?></p>
+        <?php else: ?>
+            <?php foreach ($faqItems as $item): ?>
+                <div class="faq-item" data-question="<?= $block->escapeHtmlAttr(strtolower($item->getQuestion())) ?>">
+                    <label style="display: block; padding: 8px; border-bottom: 1px solid #f0f0f0; cursor: pointer;">
+                        <input type="checkbox"
+                               name="faq_items[]"
+                               value="<?= (int)$item->getId() ?>"
+                               <?= in_array($item->getId(), $selectedIds) ? 'checked="checked"' : '' ?>
+                               style="margin-right: 10px;" />
+                        <strong><?= $block->escapeHtml($item->getQuestion()) ?></strong>
+                        <span style="color: #666; font-size: 12px; margin-left: 10px;">(ID: <?= (int)$item->getId() ?>)</span>
+                    </label>
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
+    </div>
+
+    <div class="faq-save-button-wrapper" style="margin-top: 20px; padding: 10px; background: #f5f5f5; border-top: 1px solid #ccc;">
+        <button type="button"
+                id="save-product-faq-btn"
+                class="action-primary"
+                style="padding: 8px 20px;">
+            <span><?= $block->escapeHtml(__('Save FAQ Assignments')) ?></span>
+        </button>
+        <span id="faq-save-message" style="margin-left: 15px; font-weight: bold;"></span>
+    </div>
+</div>
+
+<script>
+require([
+    'jquery',
+    'Magento_Ui/js/modal/alert',
+    'domReady!'
+], function($, alert) {
+    'use strict';
+
+    // Search functionality
+    $('#faq-search').on('keyup', function() {
+        var searchTerm = $(this).val().toLowerCase();
+        $('.faq-item').each(function() {
+            var question = $(this).data('question');
+            if (question.indexOf(searchTerm) !== -1) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+    });
+
+    // Refresh list
+    $('#refresh-faq-list-btn').on('click', function() {
+        location.reload();
+    });
+
+    // Save FAQ assignments
+    $('#save-product-faq-btn').on('click', function() {
+        var btn = $(this);
+        var messageEl = $('#faq-save-message');
+        var categoryId = <?= (int)$categoryId ?>;
+
+        if (!categoryId) {
+            alert({
+                title: $.mage.__('Error'),
+                content: $.mage.__('Category ID not found. Please save the category first.')
+            });
+            return;
+        }
+
+        // Get selected FAQ IDs
+        var selectedFaqs = [];
+        $('input[name="faq_items[]"]:checked').each(function() {
+            selectedFaqs.push($(this).val());
+        });
+
+        // Show loading
+        btn.prop('disabled', true).find('span').text('<?= $block->escapeJs(__('Saving...')) ?>');
+        messageEl.text('').removeClass('message-success message-error');
+
+        // Send AJAX request
+        $.ajax({
+            url: '<?= $block->escapeUrl($block->getUrl('faq/category/savefaq')) ?>',
+            type: 'POST',
+            data: {
+                category_id: categoryId,
+                faq_ids: selectedFaqs.join(','),
+                form_key: window.FORM_KEY
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    messageEl.text(response.message).css('color', 'green').addClass('message-success');
+                } else {
+                    messageEl.text(response.message).css('color', 'red').addClass('message-error');
+                }
+            },
+            error: function() {
+                messageEl.text('<?= $block->escapeJs(__('An error occurred while saving.')) ?>').css('color', 'red').addClass('message-error');
+            },
+            complete: function() {
+                btn.prop('disabled', false).find('span').text('<?= $block->escapeJs(__('Save FAQ Assignments')) ?>');
+
+                // Clear message after 5 seconds
+                setTimeout(function() {
+                    messageEl.fadeOut(function() {
+                        $(this).text('').show().removeClass('message-success message-error');
+                    });
+                }, 5000);
+            }
+        });
+    });
+});
+</script>
+
+<style>
+.faq-item label:hover {
+    background-color: #f5f5f5;
+}
+
+.faq-save-button-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+#save-product-faq-btn,
+#create-new-faq-btn,
+#refresh-faq-list-btn {
+    background: #1979c3;
+    border: 1px solid #1979c3;
+    color: #fff;
+    cursor: pointer;
+    border-radius: 3px;
+    padding: 8px 15px;
+}
+
+#create-new-faq-btn,
+#refresh-faq-list-btn {
+    background: #514943;
+    border-color: #514943;
+}
+
+#save-product-faq-btn:hover {
+    background: #006bb4;
+    border-color: #006bb4;
+}
+
+#create-new-faq-btn:hover,
+#refresh-faq-list-btn:hover {
+    background: #35302c;
+    border-color: #35302c;
+}
+
+#save-product-faq-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.message-success {
+    animation: fadeIn 0.3s;
+}
+
+.message-error {
+    animation: shake 0.3s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+</style>

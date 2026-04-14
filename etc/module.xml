@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Panth FAQ Module Configuration
+ *
+ * @category  Panth
+ * @package   Panth_Faq
+ * @author    Panth
+ * @copyright Copyright (c) 2025 Panth
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
+    <module name="Panth_Faq">
+        <sequence>
+            <module name="Magento_Catalog"/>
+            <module name="Magento_Cms"/>
+            <module name="Magento_Store"/>
+        </sequence>
+    </module>
+</config>

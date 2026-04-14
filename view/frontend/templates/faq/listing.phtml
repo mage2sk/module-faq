@@ -1,0 +1,360 @@
+<?php
+/**
+ * FAQ Listing Template
+ *
+ * @category  Panth
+ * @package   Panth_Faq
+ * @author    Panth
+ * @copyright Copyright (c) 2025 Panth
+ *
+ * @var $block \Panth\Faq\Block\Faq\Listing
+ * @var $escaper \Magento\Framework\Escaper
+ */
+?>
+
+<div class="faq-page">
+    <div class="page-title-wrapper">
+        <h1 class="page-title">
+            <span class="base" data-ui-id="page-title-wrapper"><?= $escaper->escapeHtml(__('Frequently Asked Questions')) ?></span>
+        </h1>
+    </div>
+
+    <div class="faq-search-wrapper">
+        <div class="faq-search-container">
+            <label for="faq-search" class="faq-search-label">
+                <?= $escaper->escapeHtml(__('Search FAQs')) ?>
+            </label>
+            <input
+                type="text"
+                id="faq-search"
+                class="faq-search-input"
+                placeholder="<?= $escaper->escapeHtmlAttr(__('Type your question here...')) ?>"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Search FAQ questions')) ?>"
+            />
+            <span class="faq-search-icon" aria-hidden="true">&#128269;</span>
+        </div>
+    </div>
+
+    <?php $categories = $block->getCategories(); ?>
+
+    <?php if ($categories->getSize() > 0): ?>
+        <div class="faq-categories-wrapper">
+            <?php foreach ($categories as $category): ?>
+                <?php if ($block->hasItems($category->getId())): ?>
+                    <section class="faq-category" data-category-id="<?= $escaper->escapeHtmlAttr($category->getId()) ?>">
+                        <div class="faq-category-header">
+                            <h2 class="faq-category-title" id="category-<?= $escaper->escapeHtmlAttr($category->getId()) ?>">
+                                <?php if ($category->getIcon()): ?>
+                                    <span class="faq-category-icon" aria-hidden="true"><?= $escaper->escapeHtml($category->getIcon()) ?></span>
+                                <?php endif; ?>
+                                <span class="faq-category-name"><?= $escaper->escapeHtml($category->getName()) ?></span>
+                            </h2>
+                            <?php if ($category->getDescription()): ?>
+                                <p class="faq-category-description">
+                                    <?= $escaper->escapeHtml($category->getDescription()) ?>
+                                </p>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="faq-items-accordion">
+                            <?php $items = $block->getCategoryItems($category->getId()); ?>
+                            <?php if ($items->getSize() > 0): ?>
+                                <?php foreach ($items as $item): ?>
+                                    <article class="faq-item"
+                                             data-item-id="<?= $escaper->escapeHtmlAttr($item->getId()) ?>"
+                                             data-category-id="<?= $escaper->escapeHtmlAttr($category->getId()) ?>">
+                                        <h3 class="faq-item-header">
+                                            <button
+                                                class="faq-item-toggle"
+                                                type="button"
+                                                aria-expanded="false"
+                                                aria-controls="<?= $escaper->escapeHtmlAttr($block->getItemAccordionId($category->getId(), $item->getId())) ?>"
+                                                data-role="faq-toggle">
+                                                <span class="faq-question">
+                                                    <?= $escaper->escapeHtml($item->getQuestion()) ?>
+                                                </span>
+                                                <span class="faq-toggle-icon" aria-hidden="true">
+                                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                </span>
+                                            </button>
+                                        </h3>
+                                        <div
+                                            class="faq-item-content"
+                                            id="<?= $escaper->escapeHtmlAttr($block->getItemAccordionId($category->getId(), $item->getId())) ?>"
+                                            role="region"
+                                            aria-labelledby="<?= $escaper->escapeHtmlAttr($block->getItemAccordionId($category->getId(), $item->getId())) ?>-label"
+                                            hidden>
+                                            <div class="faq-answer">
+                                                <?= /* @noEscape */ $item->getAnswer() ?>
+                                            </div>
+                                        </div>
+                                    </article>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
+                    </section>
+                <?php endif; ?>
+            <?php endforeach; ?>
+        </div>
+    <?php else: ?>
+        <div class="faq-no-items">
+            <p><?= $escaper->escapeHtml(__('No FAQ items are currently available.')) ?></p>
+        </div>
+    <?php endif; ?>
+</div>
+
+<script type="text/x-magento-init">
+{
+    ".faq-page": {
+        "Panth_Faq/js/faq-listing": {}
+    }
+}
+</script>
+
+<style>
+    /* FAQ Page Styles */
+    .faq-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .page-title-wrapper {
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .page-title .base {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #333;
+    }
+
+    /* Search Section */
+    .faq-search-wrapper {
+        margin-bottom: 3rem;
+    }
+
+    .faq-search-container {
+        position: relative;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .faq-search-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #555;
+    }
+
+    .faq-search-input {
+        width: 100%;
+        padding: 1rem 3rem 1rem 1rem;
+        font-size: 1rem;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        transition: border-color 0.3s ease;
+    }
+
+    .faq-search-input:focus {
+        outline: none;
+        border-color: #007bff;
+    }
+
+    .faq-search-icon {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 1.25rem;
+        color: #999;
+        pointer-events: none;
+        margin-top: 0.75rem;
+    }
+
+    /* Categories Section */
+    .faq-categories-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .faq-category {
+        background: #fff;
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        padding: 2rem;
+        transition: box-shadow 0.3s ease;
+    }
+
+    .faq-category:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .faq-category-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .faq-category-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: #333;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .faq-category-icon {
+        font-size: 2rem;
+    }
+
+    .faq-category-description {
+        color: #666;
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    /* FAQ Items Accordion */
+    .faq-items-accordion {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .faq-item {
+        border: 1px solid #e5e5e5;
+        border-radius: 6px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .faq-item.active {
+        border-color: #007bff;
+        box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+    }
+
+    .faq-item.hidden {
+        display: none;
+    }
+
+    .faq-item-header {
+        margin: 0;
+    }
+
+    .faq-item-toggle {
+        width: 100%;
+        padding: 1.25rem 1.5rem;
+        background: #f8f9fa;
+        border: none;
+        text-align: left;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        transition: background-color 0.3s ease;
+    }
+
+    .faq-item-toggle:hover {
+        background: #e9ecef;
+    }
+
+    .faq-item.active .faq-item-toggle {
+        background: #007bff;
+        color: #fff;
+    }
+
+    .faq-question {
+        font-size: 1.125rem;
+        font-weight: 600;
+        flex: 1;
+    }
+
+    .faq-toggle-icon {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        transition: transform 0.3s ease;
+    }
+
+    .faq-item.active .faq-toggle-icon {
+        transform: rotate(180deg);
+    }
+
+    .faq-item-content {
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+    }
+
+    .faq-item-content[hidden] {
+        display: none;
+    }
+
+    .faq-answer {
+        padding: 1.5rem;
+        line-height: 1.6;
+        color: #444;
+        background: #fff;
+    }
+
+    .faq-answer p {
+        margin-bottom: 1rem;
+    }
+
+    .faq-answer p:last-child {
+        margin-bottom: 0;
+    }
+
+    /* No Items Message */
+    .faq-no-items {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #666;
+        font-size: 1.125rem;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .faq-page {
+            padding: 1rem;
+        }
+
+        .page-title .base {
+            font-size: 2rem;
+        }
+
+        .faq-category {
+            padding: 1.5rem;
+        }
+
+        .faq-category-title {
+            font-size: 1.5rem;
+        }
+
+        .faq-question {
+            font-size: 1rem;
+        }
+
+        .faq-item-toggle {
+            padding: 1rem;
+        }
+
+        .faq-answer {
+            padding: 1rem;
+        }
+    }
+
+    /* Highlight matching search terms */
+    .faq-highlight {
+        background-color: #fff3cd;
+        padding: 0 2px;
+        font-weight: 600;
+    }
+</style>

@@ -1,0 +1,178 @@
+<?xml version="1.0"?>
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">faq_item_listing.faq_item_listing_data_source</item>
+        </item>
+    </argument>
+    <settings>
+        <buttons>
+            <button name="add">
+                <url path="*/*/new"/>
+                <class>primary</class>
+                <label translate="true">Add New FAQ Item</label>
+            </button>
+        </buttons>
+        <spinner>faq_item_columns</spinner>
+        <deps>
+            <dep>faq_item_listing.faq_item_listing_data_source</dep>
+        </deps>
+    </settings>
+    <dataSource name="faq_item_listing_data_source" component="Magento_Ui/js/grid/provider">
+        <settings>
+            <storageConfig>
+                <param name="indexField" xsi:type="string">item_id</param>
+            </storageConfig>
+            <updateUrl path="mui/index/render"/>
+        </settings>
+        <aclResource>Panth_Faq::item</aclResource>
+        <dataProvider class="Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider" name="faq_item_listing_data_source">
+            <settings>
+                <requestFieldName>item_id</requestFieldName>
+                <primaryFieldName>item_id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+    <listingToolbar name="listing_top">
+        <settings>
+            <sticky>true</sticky>
+        </settings>
+        <bookmark name="bookmarks"/>
+        <columnsControls name="columns_controls"/>
+        <filterSearch name="fulltext"/>
+        <filters name="listing_filters"/>
+        <massaction name="listing_massaction">
+            <action name="delete">
+                <settings>
+                    <confirm>
+                        <message translate="true">Are you sure you want to delete the selected items?</message>
+                        <title translate="true">Delete items</title>
+                    </confirm>
+                    <url path="faq/item/massDelete"/>
+                    <type>delete</type>
+                    <label translate="true">Delete</label>
+                </settings>
+            </action>
+            <action name="show_on_main">
+                <settings>
+                    <url path="faq/item/massShowOnMain"/>
+                    <type>show_on_main</type>
+                    <label translate="true">Show on Main Page</label>
+                </settings>
+            </action>
+            <action name="hide_from_main">
+                <settings>
+                    <url path="faq/item/massHideFromMain"/>
+                    <type>hide_from_main</type>
+                    <label translate="true">Hide from Main Page</label>
+                </settings>
+            </action>
+            <action name="enable">
+                <settings>
+                    <url path="faq/item/massStatus"/>
+                    <type>enable</type>
+                    <label translate="true">Enable</label>
+                </settings>
+            </action>
+            <action name="disable">
+                <settings>
+                    <url path="faq/item/massStatus"/>
+                    <type>disable</type>
+                    <label translate="true">Disable</label>
+                </settings>
+            </action>
+        </massaction>
+        <paging name="listing_paging"/>
+    </listingToolbar>
+    <columns name="faq_item_columns">
+        <selectionsColumn name="ids" sortOrder="0">
+            <settings>
+                <indexField>item_id</indexField>
+            </settings>
+        </selectionsColumn>
+        <column name="item_id" sortOrder="10">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">ID</label>
+                <sorting>asc</sorting>
+            </settings>
+        </column>
+        <column name="question" sortOrder="20">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Question</label>
+            </settings>
+        </column>
+        <column name="category_id" sortOrder="30" class="Panth\Faq\Ui\Component\Listing\Column\Category">
+            <settings>
+                <filter>false</filter>
+                <label translate="true">FAQ Categories</label>
+                <bodyTmpl>ui/grid/cells/html</bodyTmpl>
+            </settings>
+        </column>
+        <column name="catalog_categories" sortOrder="33" class="Panth\Faq\Ui\Component\Listing\Column\CatalogCategories">
+            <settings>
+                <filter>false</filter>
+                <label translate="true">Catalog Categories</label>
+                <bodyTmpl>ui/grid/cells/html</bodyTmpl>
+                <sortable>false</sortable>
+            </settings>
+        </column>
+        <column name="products" sortOrder="35" class="Panth\Faq\Ui\Component\Listing\Column\Products">
+            <settings>
+                <filter>false</filter>
+                <label translate="true">Assigned Products</label>
+                <bodyTmpl>ui/grid/cells/html</bodyTmpl>
+                <sortable>false</sortable>
+            </settings>
+        </column>
+        <column name="cms_pages" sortOrder="37" class="Panth\Faq\Ui\Component\Listing\Column\Pages">
+            <settings>
+                <filter>false</filter>
+                <label translate="true">Assigned CMS Pages</label>
+                <bodyTmpl>ui/grid/cells/html</bodyTmpl>
+                <sortable>false</sortable>
+            </settings>
+        </column>
+        <column name="is_active" sortOrder="40" component="Magento_Ui/js/grid/columns/select">
+            <settings>
+                <options class="Magento\Config\Model\Config\Source\Yesno"/>
+                <filter>select</filter>
+                <dataType>select</dataType>
+                <label translate="true">Status</label>
+            </settings>
+        </column>
+        <column name="show_on_main" sortOrder="45" component="Magento_Ui/js/grid/columns/select">
+            <settings>
+                <options class="Magento\Config\Model\Config\Source\Yesno"/>
+                <filter>select</filter>
+                <dataType>select</dataType>
+                <label translate="true">Show on Main Page</label>
+            </settings>
+        </column>
+        <column name="view_count" sortOrder="50">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">Views</label>
+            </settings>
+        </column>
+        <column name="helpful_count" sortOrder="60">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">Helpful</label>
+            </settings>
+        </column>
+        <column name="created_at" class="Magento\Ui\Component\Listing\Columns\Date" component="Magento_Ui/js/grid/columns/date" sortOrder="70">
+            <settings>
+                <filter>dateRange</filter>
+                <dataType>date</dataType>
+                <label translate="true">Created</label>
+            </settings>
+        </column>
+        <actionsColumn name="actions" class="Panth\Faq\Ui\Component\Listing\Column\ItemActions" sortOrder="1000">
+            <settings>
+                <indexField>item_id</indexField>
+            </settings>
+        </actionsColumn>
+    </columns>
+</listing>

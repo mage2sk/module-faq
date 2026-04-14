@@ -1,0 +1,63 @@
+<?php
+/**
+ * FAQ Item Product Assignment Grid JavaScript
+ *
+ * @var $block \Panth\Faq\Block\Adminhtml\Item\Edit\Tab\Product
+ */
+?>
+<script>
+require([
+    'jquery',
+    'mage/adminhtml/grid'
+], function($){
+    var gridJsObject = window.<?= $block->escapeJs($block->getGridId()) ?>;
+
+    if (!gridJsObject) {
+        return;
+    }
+
+    // Save the original doFilter function
+    var originalDoFilter = gridJsObject.doFilter;
+
+    // Override the doFilter function to include selected products
+    gridJsObject.doFilter = function() {
+        var selectedProducts = [];
+        $('#<?= $block->escapeJs($block->getGridId()) ?>_table input[name="in_products"]:checked').each(function() {
+            selectedProducts.push($(this).val());
+        });
+
+        // Add selected products to the filter parameters
+        this.addVarToUrl('products', selectedProducts.join(','));
+
+        // Call original doFilter
+        originalDoFilter.call(this);
+    };
+
+    // Function to get selected products for form submission
+    window.getFaqItemProducts = function() {
+        var selected = [];
+        $('#<?= $block->escapeJs($block->getGridId()) ?>_table input[name="in_products"]:checked').each(function() {
+            selected.push($(this).val());
+        });
+        return selected;
+    };
+
+    // Serialize grid data for form submission
+    var productInput = $('#faq_item_form input[name="products"]');
+    if (!productInput.length) {
+        productInput = $('<input type="hidden" name="products" />').appendTo('#faq_item_form');
+    }
+
+    // Update hidden input before form submission
+    $('#faq_item_form').on('beforeSubmit', function() {
+        var selected = window.getFaqItemProducts();
+        productInput.val(JSON.stringify(selected));
+    });
+
+    // For Save and Continue button
+    $('button[data-ui-id*="save-button"]').on('click', function() {
+        var selected = window.getFaqItemProducts();
+        productInput.val(JSON.stringify(selected));
+    });
+});
+</script>

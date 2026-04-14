@@ -1,0 +1,145 @@
+{
+    "panth_faq_category": {
+        "column": {
+            "category_id": true,
+            "name": true,
+            "url_key": true,
+            "description": true,
+            "icon": true,
+            "is_active": true,
+            "sort_order": true,
+            "meta_title": true,
+            "meta_description": true,
+            "meta_keywords": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "index": {
+            "PANTH_FAQ_CATEGORY_URL_KEY": true,
+            "PANTH_FAQ_CATEGORY_IS_ACTIVE": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    },
+    "panth_faq_item": {
+        "column": {
+            "item_id": true,
+            "category_id": true,
+            "question": true,
+            "answer": true,
+            "url_key": true,
+            "is_active": true,
+            "sort_order": true,
+            "view_count": true,
+            "helpful_count": true,
+            "not_helpful_count": true,
+            "show_on_main": true,
+            "meta_title": true,
+            "meta_description": true,
+            "meta_keywords": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "index": {
+            "PANTH_FAQ_ITEM_CATEGORY_ID": true,
+            "PANTH_FAQ_ITEM_URL_KEY": true,
+            "PANTH_FAQ_ITEM_IS_ACTIVE": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "PANTH_FAQ_ITEM_CATEGORY_ID_PANTH_FAQ_CATEGORY_CATEGORY_ID": true
+        }
+    },
+    "panth_faq_category_store": {
+        "column": {
+            "category_id": true,
+            "store_id": true
+        },
+        "index": {
+            "PANTH_FAQ_CATEGORY_STORE_STORE_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "PANTH_FAQ_CATEGORY_STORE_CATEGORY_ID_PANTH_FAQ_CATEGORY_CATEGORY_ID": true,
+            "PANTH_FAQ_CATEGORY_STORE_STORE_ID_STORE_STORE_ID": true,
+            "PANTH_FAQ_CTGR_STORE_CTGR_ID_PANTH_FAQ_CTGR_CTGR_ID": true
+        }
+    },
+    "panth_faq_item_store": {
+        "column": {
+            "item_id": true,
+            "store_id": true
+        },
+        "index": {
+            "PANTH_FAQ_ITEM_STORE_STORE_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "PANTH_FAQ_ITEM_STORE_ITEM_ID_PANTH_FAQ_ITEM_ITEM_ID": true,
+            "PANTH_FAQ_ITEM_STORE_STORE_ID_STORE_STORE_ID": true
+        }
+    },
+    "panth_faq_item_product": {
+        "column": {
+            "item_id": true,
+            "product_id": true,
+            "sort_order": true
+        },
+        "index": {
+            "PANTH_FAQ_ITEM_PRODUCT_PRODUCT_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "PANTH_FAQ_ITEM_PRODUCT_ITEM_ID_PANTH_FAQ_ITEM_ITEM_ID": true,
+            "PANTH_FAQ_ITEM_PRODUCT_PRODUCT_ID_CATALOG_PRODUCT_ENTITY_ENTITY_ID": true,
+            "PANTH_FAQ_ITEM_PRD_PRD_ID_CAT_PRD_ENTT_ENTT_ID": true
+        }
+    },
+    "panth_faq_item_catalog_category": {
+        "column": {
+            "item_id": true,
+            "category_id": true,
+            "sort_order": true
+        },
+        "index": {
+            "PANTH_FAQ_ITEM_CATALOG_CATEGORY_CATEGORY_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "PANTH_FAQ_ITEM_CATALOG_CATEGORY_ITEM_ID_PANTH_FAQ_ITEM_ITEM_ID": true,
+            "PANTH_FAQ_ITEM_CATALOG_CATEGORY_CATEGORY_ID": true,
+            "PANTH_FAQ_ITEM_CAT_CTGR_CTGR_ID_CAT_CTGR_ENTT_ENTT_ID": true
+        }
+    },
+    "panth_faq_item_page": {
+        "column": {
+            "item_id": true,
+            "page_id": true,
+            "sort_order": true
+        },
+        "index": {
+            "PANTH_FAQ_ITEM_PAGE_PAGE_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "PANTH_FAQ_ITEM_PAGE_ITEM_ID_PANTH_FAQ_ITEM_ITEM_ID": true,
+            "PANTH_FAQ_ITEM_PAGE_PAGE_ID_CMS_PAGE_PAGE_ID": true
+        }
+    },
+    "panth_faq_item_faq_category": {
+        "column": {
+            "item_id": true,
+            "faq_category_id": true,
+            "sort_order": true
+        },
+        "index": {
+            "PANTH_FAQ_ITEM_FAQ_CATEGORY_FAQ_CATEGORY_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "PANTH_FAQ_ITEM_FAQ_CATEGORY_ITEM_ID_PANTH_FAQ_ITEM_ITEM_ID": true,
+            "PANTH_FAQ_ITEM_FAQ_CTGR_FAQ_CTGR_ID_PANTH_FAQ_CTGR_CTGR_ID": true
+        }
+    }
+}

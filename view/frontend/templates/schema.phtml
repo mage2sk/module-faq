@@ -1,0 +1,26 @@
+<?php
+/**
+ * FAQ Schema Template
+ *
+ * @category  Panth
+ * @package   Panth_Faq
+ * @author    Panth
+ * @copyright Copyright (c) 2025 Panth
+ *
+ * @var $block \Panth\Faq\Block\Schema
+ */
+
+// Check if schema is enabled and get schema data
+if (!$block->isEnabled()) {
+    return;
+}
+
+$schemaData = $block->getSchemaData();
+
+if (!$schemaData) {
+    return;
+}
+?>
+<script type="application/ld+json">
+<?= /* @noEscape */ $schemaData ?>
+</script>

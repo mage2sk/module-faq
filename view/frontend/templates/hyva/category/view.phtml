@@ -1,0 +1,184 @@
+<?php
+/**
+ * Copyright © Panth Infotech. All rights reserved.
+ * FAQ Category View — Hyva Compatible
+ *
+ * @var $block \Panth\Faq\Block\Category\View
+ */
+
+$category = $block->getCategory();
+$items = $block->getFaqItems();
+$showCategoryDesc = $block->showCategoryDescription();
+$showViewCount = $block->showViewCount();
+$isHelpfulVotingEnabled = $block->isHelpfulVotingEnabled();
+$isDefaultOpen = $block->isDefaultOpen();
+$voteUrl = $block->getUrl('faq/vote/submit');
+$backUrl = $block->getBackUrl();
+$itemCount = $items ? (int)$items->getSize() : 0;
+?>
+
+<div class="max-w-3xl mx-auto py-4">
+    <?php if ($category): ?>
+        <!-- Back link -->
+        <a href="<?= $block->escapeUrl($backUrl) ?>"
+           class="inline-flex items-center gap-1.5 text-sm mb-6 transition"
+           style="color: var(--color-primary, #0D9488);">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            <?= $block->escapeHtml(__('All FAQs')) ?>
+        </a>
+
+        <!-- Category Header -->
+        <h1 class="text-2xl md:text-3xl font-bold mb-3" style="color: var(--color-fg, #171717);">
+            <?= $block->escapeHtml($category->getName()) ?>
+        </h1>
+
+        <?php if ($showCategoryDesc && $category->getDescription()): ?>
+            <div class="prose prose-sm max-w-none mb-6" style="color: var(--color-fg-secondary, #525252);">
+                <?= /* @noEscape */ $category->getDescription() ?>
+            </div>
+        <?php endif; ?>
+
+        <p class="text-xs mb-6" style="color: var(--color-fg-muted, #a3a3a3);">
+            <?= $block->escapeHtml(__('%1 questions in this category', $itemCount)) ?>
+        </p>
+
+        <?php if ($itemCount > 0): ?>
+            <!-- FAQ Items -->
+            <div class="space-y-3" x-data="{ query: '', visibleCount: <?= (int)$itemCount ?> }">
+                <!-- Quick search within category -->
+                <div class="mb-4">
+                    <input type="text"
+                           x-model="query"
+                           @input.debounce.300ms="
+                               let q = query.toLowerCase().trim();
+                               let count = 0;
+                               $el.closest('[x-data]').querySelectorAll('.faq-cat-item').forEach(el => {
+                                   if (!q || (el.dataset.q || '').includes(q) || (el.dataset.a || '').includes(q)) {
+                                       el.style.display = ''; count++;
+                                   } else {
+                                       el.style.display = 'none';
+                                   }
+                               });
+                               visibleCount = count;
+                           "
+                           placeholder="<?= $block->escapeHtmlAttr(__('Search in this category...')) ?>"
+                           class="w-full px-4 py-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                           style="border-color: var(--color-container-darker, #e5e5e5); background: var(--color-surface, #fff); color: var(--color-fg, #171717);" />
+                    <p x-show="query.length > 0" x-transition class="text-xs mt-1.5" style="color: var(--color-fg-muted, #a3a3a3);"
+                       x-text="visibleCount + ' result' + (visibleCount !== 1 ? 's' : '')"></p>
+                </div>
+
+                <?php foreach ($items as $item): ?>
+                    <div class="faq-cat-item rounded-lg border overflow-hidden transition hover:shadow-sm"
+                         style="border-color: var(--color-container-darker, #e5e5e5); background: var(--color-surface, #fff);"
+                         x-data="{ open: <?= $isDefaultOpen ? 'true' : 'false' ?>, voted: false }"
+                         data-q="<?= $block->escapeHtmlAttr(strtolower($item->getQuestion())) ?>"
+                         data-a="<?= $block->escapeHtmlAttr(strtolower(strip_tags($item->getAnswer()))) ?>"
+                         id="faq-<?= (int)$item->getId() ?>">
+                        <!-- Question header -->
+                        <div class="cursor-pointer p-4 flex items-center justify-between transition"
+                             @click="open = !open"
+                             :style="open ? 'background: var(--color-container, #f5f5f5)' : ''"
+                             role="button" tabindex="0" @keydown.enter="open = !open"
+                             :aria-expanded="open">
+                            <h3 class="text-sm font-semibold pr-4 flex-1" style="color: var(--color-fg, #171717);">
+                                <?= $block->escapeHtml($item->getQuestion()) ?>
+                            </h3>
+                            <span class="flex-shrink-0 w-5 h-5 flex items-center justify-center transition-transform duration-300"
+                                  :class="{ 'rotate-180': open }"
+                                  style="color: var(--color-fg-secondary, #525252);">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </span>
+                        </div>
+                        <!-- Answer -->
+                        <div x-show="open" x-transition>
+                            <div class="p-4">
+                                <div class="prose prose-sm max-w-none mb-4" style="color: var(--color-fg-secondary, #525252);">
+                                    <?= /* @noEscape */ $item->getAnswer() ?>
+                                </div>
+
+                                <?php if ($showViewCount || $isHelpfulVotingEnabled): ?>
+                                    <div class="flex flex-wrap items-center justify-between gap-3 pt-3 mt-3"
+                                         style="border-top: 1px solid var(--color-container-darker, #e5e5e5);">
+                                        <?php if ($showViewCount): ?>
+                                            <span class="text-xs" style="color: var(--color-fg-muted, #a3a3a3);">
+                                                <?= $block->escapeHtml(__('%1 views', $item->getViewCount())) ?>
+                                            </span>
+                                        <?php endif; ?>
+                                        <?php if ($isHelpfulVotingEnabled): ?>
+                                            <div class="flex items-center gap-3 text-sm">
+                                                <span class="text-xs" style="color: var(--color-fg-secondary, #525252);"><?= $block->escapeHtml(__('Was this helpful?')) ?></span>
+                                                <button type="button"
+                                                        class="helpful-yes inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition disabled:opacity-40"
+                                                        style="border-color: var(--color-primary, #0D9488); color: var(--color-primary-darker, #0F766E); background: var(--color-surface, #fff);"
+                                                        :disabled="voted"
+                                                        @click="
+                                                            if (localStorage.getItem('faq_voted_<?= (int)$item->getId() ?>')) return;
+                                                            fetch('<?= $block->escapeJs($voteUrl) ?>', {
+                                                                method: 'POST',
+                                                                headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+                                                                body: JSON.stringify({item_id: <?= (int)$item->getId() ?>, vote: 'yes'})
+                                                            }).then(r => r.json()).then(d => {
+                                                                if (d.success) { $el.querySelector('.count').textContent = '(' + d.helpful_count + ')'; voted = true; localStorage.setItem('faq_voted_<?= (int)$item->getId() ?>', 'yes'); $el.style.background = 'var(--color-primary-lighter, #F0FDFA)'; }
+                                                            });
+                                                        ">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/></svg>
+                                                    Yes <span class="count">(<?= (int)$item->getHelpfulCount() ?>)</span>
+                                                </button>
+                                                <button type="button"
+                                                        class="helpful-no inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition disabled:opacity-40"
+                                                        style="border-color: var(--color-container-darker, #e5e5e5); color: var(--color-fg-secondary, #525252); background: var(--color-surface, #fff);"
+                                                        :disabled="voted"
+                                                        @click="
+                                                            if (localStorage.getItem('faq_voted_<?= (int)$item->getId() ?>')) return;
+                                                            fetch('<?= $block->escapeJs($voteUrl) ?>', {
+                                                                method: 'POST',
+                                                                headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+                                                                body: JSON.stringify({item_id: <?= (int)$item->getId() ?>, vote: 'no'})
+                                                            }).then(r => r.json()).then(d => {
+                                                                if (d.success) { $el.querySelector('.count').textContent = '(' + d.not_helpful_count + ')'; voted = true; localStorage.setItem('faq_voted_<?= (int)$item->getId() ?>', 'no'); $el.style.background = '#fde8e8'; }
+                                                            });
+                                                        ">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018c.163 0 .326.02.485.06L17 4m-7 10v2a2 2 0 002 2h.095c.5 0 .905-.405.905-.905 0-.714.211-1.412.608-2.006L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5"/></svg>
+                                                    No <span class="count">(<?= (int)$item->getNotHelpfulCount() ?>)</span>
+                                                </button>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+
+                <!-- No results message -->
+                <div x-show="visibleCount === 0 && query.length > 0" x-transition
+                     class="rounded-lg p-4 text-sm text-center"
+                     style="background: var(--color-container, #f5f5f5); color: var(--color-fg-secondary, #525252);">
+                    <?= $block->escapeHtml(__('No FAQs found matching your search.')) ?>
+                </div>
+            </div>
+        <?php else: ?>
+            <div class="rounded-lg p-6 text-center" style="background: var(--color-container, #f5f5f5); color: var(--color-fg-secondary, #525252);">
+                <?= $block->escapeHtml(__('No FAQs available in this category yet.')) ?>
+            </div>
+        <?php endif; ?>
+
+    <?php else: ?>
+        <div class="rounded-lg p-6 text-center" style="background: var(--color-container, #f5f5f5); color: var(--color-fg-secondary, #525252);">
+            <?= $block->escapeHtml(__('Category not found.')) ?>
+        </div>
+        <a href="<?= $block->escapeUrl($backUrl) ?>"
+           class="inline-flex items-center gap-1.5 text-sm mt-4"
+           style="color: var(--color-primary, #0D9488);">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            <?= $block->escapeHtml(__('Back to FAQs')) ?>
+        </a>
+    <?php endif; ?>
+</div>

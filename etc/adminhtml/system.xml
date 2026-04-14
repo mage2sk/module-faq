@@ -1,0 +1,128 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Panth Infotech. All rights reserved.
+ * FAQ Module System Configuration
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="panth" translate="label" sortOrder="300">
+            <label>🚀 Panth Extensions</label>
+        </tab>
+
+        <section id="panth_faq" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>FAQ Settings</label>
+            <tab>panth</tab>
+            <resource>Panth_Faq::config</resource>
+
+            <!-- General Settings -->
+            <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General Settings</label>
+                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable FAQ</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Enable or disable the FAQ module entirely</comment>
+                    <config_path>panth_faq/general/enabled</config_path>
+                </field>
+                <field id="faq_route" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>FAQ Page URL Key</label>
+                    <comment><![CDATA[URL path for the FAQ page (e.g., "faqs", "help", "support"). Default: "faq"]]></comment>
+                    <config_path>panth_faq/general/faq_route</config_path>
+                </field>
+            </group>
+
+            <!-- Display Settings -->
+            <group id="display" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Display Settings</label>
+                <field id="items_per_page" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Items Per Page</label>
+                    <comment>Number of FAQ items to show per page. Default: 20</comment>
+                    <validate>validate-digits</validate>
+                    <config_path>panth_faq/display/items_per_page</config_path>
+                </field>
+                <field id="show_category_description" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Category Description</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <config_path>panth_faq/display/show_category_description</config_path>
+                </field>
+                <field id="show_search" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Search Bar</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Allow visitors to search through FAQs</comment>
+                    <config_path>panth_faq/display/show_search</config_path>
+                </field>
+                <field id="show_category_filter" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Category Filter</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Show category filter tabs on the FAQ page</comment>
+                    <config_path>panth_faq/display/show_category_filter</config_path>
+                </field>
+                <field id="default_open_faqs" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Default Open FAQ Items</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Expand all FAQ accordion items by default</comment>
+                    <config_path>panth_faq/display/default_open_faqs</config_path>
+                </field>
+                <field id="show_view_count" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show View Count</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <config_path>panth_faq/display/show_view_count</config_path>
+                </field>
+                <field id="enable_helpful_voting" translate="label comment" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Helpful Voting</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Allow visitors to rate FAQ items as helpful or not</comment>
+                    <config_path>panth_faq/display/enable_helpful_voting</config_path>
+                </field>
+            </group>
+
+            <!-- Integration Settings -->
+            <group id="integration" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Page Integration</label>
+                <comment><![CDATA[Control where FAQ items appear across your store. Assign specific FAQs to products, categories, or CMS pages from the FAQ item edit form.]]></comment>
+                <field id="product_page_enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show on Product Pages</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Display assigned FAQ items on product detail pages</comment>
+                    <config_path>panth_faq/product_page/enabled</config_path>
+                </field>
+                <field id="category_page_enabled" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show on Category Pages</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Display assigned FAQ items on category pages</comment>
+                    <config_path>panth_faq/category_page/enabled</config_path>
+                </field>
+                <field id="cms_page_enabled" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show on CMS Pages</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Display assigned FAQ items on CMS pages</comment>
+                    <config_path>panth_faq/cms_page/enabled</config_path>
+                </field>
+            </group>
+
+            <!-- SEO -->
+            <group id="seo" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>SEO Settings</label>
+                <field id="enable_schema" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable FAQ Schema Markup</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Add JSON-LD FAQPage schema for Google rich results</comment>
+                    <config_path>panth_faq/seo/enable_schema</config_path>
+                </field>
+            </group>
+
+            <!-- Design -->
+            <group id="design" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Custom Styling</label>
+                <comment><![CDATA[FAQ colors and sizing are managed via CSS variables from <code>theme-config.json</code>. Use this field for minor custom CSS overrides only.]]></comment>
+                <field id="custom_css" translate="label comment" type="textarea" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Custom CSS</label>
+                    <comment><![CDATA[All FAQ pages are wrapped with <code>.panth-faq-module</code>. Prefix your selectors: <code>.panth-faq-module .your-class { }</code>. Do not include <code>&lt;style&gt;</code> tags.]]></comment>
+                    <config_path>panth_faq/design/custom_css</config_path>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>
