@@ -2,7 +2,7 @@
     "name": "mage2kishan/module-faq",
     "description": "Advanced FAQ Module with multi-level assignment capabilities",
     "type": "magento2-module",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "license": "proprietary",
     "authors": [
         {
