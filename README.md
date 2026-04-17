@@ -24,6 +24,18 @@
 
 ---
 
+## 🎬 Live Demo
+
+<p align="center">
+  <img src="docs/screenshots/demo.gif" alt="Panth FAQ — Magento 2 FAQ module live demo: storefront accordion, category filter, AJAX search, admin management, and configuration" width="900" />
+</p>
+
+<p align="center">
+  <em>A full walkthrough — storefront FAQ page, category filter, AJAX search, per-category listing, FAQ detail page, admin grids, edit forms and store configuration.</em>
+</p>
+
+---
+
 ## 🚀 Need Custom Magento 2 Development?
 
 > **Get a free quote for your project in 24 hours** — custom modules, Hyva themes, performance optimization, M1→M2 migrations, and Adobe Commerce Cloud.
@@ -67,12 +79,14 @@ Performance • SEO • Adobe Commerce Cloud
 
 ## Table of Contents
 
+- [Live Demo](#-live-demo)
 - [Why Panth FAQ](#why-panth-faq)
 - [Key Features](#key-features)
 - [Compatibility](#compatibility)
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Admin Management](#admin-management)
+- [Screenshots](#-screenshots)
 - [FAQPage Schema (SEO)](#faqpage-schema-seo)
 - [FAQ Widget](#faq-widget)
 - [FAQ](#faq)
@@ -204,6 +218,76 @@ Navigate to **Stores → Configuration → Panth Extensions → FAQ Settings**.
 - **FAQ Items** — `Panth Infotech → FAQ → FAQ Items` — create, edit, mass-delete, mass-enable/disable, mass show/hide from the global FAQ page
 - **FAQ Categories** — `Panth Infotech → FAQ → FAQ Categories` — manage categories with names, descriptions, images, and sort order
 - **Assignment grids** — assign FAQ items to specific products, catalog categories, and CMS pages from the FAQ item edit form using native Magento UI component grids with filters and checkboxes
+
+---
+
+## 📸 Screenshots
+
+### Storefront
+
+<table>
+<tr>
+<td width="50%" align="center">
+<a href="docs/screenshots/01-frontend-faq-page.png"><img src="docs/screenshots/01-frontend-faq-page.png" alt="FAQ page with category filter, search bar and accordion answer" /></a>
+<br/><sub><b>Global FAQ page</b> — accordion UI, category filter tabs, live search bar, helpful-vote buttons, and FAQPage JSON-LD schema.</sub>
+</td>
+<td width="50%" align="center">
+<a href="docs/screenshots/02-frontend-filter-orders-shipping.png"><img src="docs/screenshots/02-frontend-filter-orders-shipping.png" alt="Storefront filtered to Orders and Shipping category" /></a>
+<br/><sub><b>Category filter — Orders &amp; Shipping</b> — one-click filtering restricts the listing to the selected FAQ category without a page reload.</sub>
+</td>
+</tr>
+<tr>
+<td width="50%" align="center">
+<a href="docs/screenshots/03-frontend-filter-products-sizing.png"><img src="docs/screenshots/03-frontend-filter-products-sizing.png" alt="Storefront filtered to Products and Sizing category" /></a>
+<br/><sub><b>Category filter — Products &amp; Sizing</b> — each filter chip preserves the search state and page scroll.</sub>
+</td>
+<td width="50%" align="center">
+<a href="docs/screenshots/04-frontend-ajax-search.png"><img src="docs/screenshots/04-frontend-ajax-search.png" alt="AJAX search for order returning six matching FAQ items" /></a>
+<br/><sub><b>AJAX live search</b> — debounced keyword search across question &amp; answer fields; result count is displayed instantly.</sub>
+</td>
+</tr>
+<tr>
+<td width="50%" align="center">
+<a href="docs/screenshots/09-frontend-category-listing.png"><img src="docs/screenshots/09-frontend-category-listing.png" alt="Dedicated Orders and Shipping category page with in-category search" /></a>
+<br/><sub><b>Category landing page</b> — SEO-friendly URL (<code>/faq/orders-shipping</code>), category description, and scoped search for large FAQ sets.</sub>
+</td>
+<td width="50%" align="center">
+<a href="docs/screenshots/06-frontend-faq-detail.png"><img src="docs/screenshots/06-frontend-faq-detail.png" alt="Standalone FAQ detail page with helpful voting" /></a>
+<br/><sub><b>FAQ detail page</b> — individual question URL for deep-linking and rich results; thumbs-up / thumbs-down helpful voting.</sub>
+</td>
+</tr>
+</table>
+
+### Admin
+
+<table>
+<tr>
+<td width="50%" align="center">
+<a href="docs/screenshots/05-admin-faq-items-grid.png"><img src="docs/screenshots/05-admin-faq-items-grid.png" alt="Admin grid listing all FAQ items with category, status, views and helpful columns" /></a>
+<br/><sub><b>FAQ Items grid</b> — native Magento UI component grid with inline filters, mass actions, per-column sort, views and helpful-vote counters.</sub>
+</td>
+<td width="50%" align="center">
+<a href="docs/screenshots/08-admin-faq-categories-grid.png"><img src="docs/screenshots/08-admin-faq-categories-grid.png" alt="Admin grid of FAQ categories" /></a>
+<br/><sub><b>FAQ Categories grid</b> — manage categories, URL keys, sort order and status from a single screen.</sub>
+</td>
+</tr>
+<tr>
+<td width="50%" align="center">
+<a href="docs/screenshots/07-admin-edit-faq-item.png"><img src="docs/screenshots/07-admin-edit-faq-item.png" alt="Admin edit FAQ item form with product, category and CMS assignment grids" /></a>
+<br/><sub><b>Edit FAQ Item</b> — store-view scoping, WYSIWYG / Page Builder answer, SEO fields, plus multi-level assignment grids for products, catalog categories and CMS pages.</sub>
+</td>
+<td width="50%" align="center">
+<a href="docs/screenshots/10-admin-edit-faq-category.png"><img src="docs/screenshots/10-admin-edit-faq-category.png" alt="Admin edit FAQ category form with description and SEO fields" /></a>
+<br/><sub><b>Edit FAQ Category</b> — rich-text description, sort order, and per-category meta title, meta description and meta keywords.</sub>
+</td>
+</tr>
+<tr>
+<td colspan="2" align="center">
+<a href="docs/screenshots/11-admin-store-configuration.png"><img src="docs/screenshots/11-admin-store-configuration.png" alt="Store Configuration panel with all FAQ module settings" width="780" /></a>
+<br/><sub><b>Store Configuration — FAQ Settings</b> — General, Display, Page Integration, SEO and Custom Styling groups, all store-view scoped.</sub>
+</td>
+</tr>
+</table>
 
 ---
 
