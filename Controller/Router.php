@@ -98,9 +98,15 @@ class Router implements RouterInterface
             return null;
         }
 
-        // Get configured FAQ URL key (default: 'faq')
+        // Get configured FAQ URL key (default: 'faq'). The admin form
+        // stores this under `panth_faq/general/faq_route` (see
+        // etc/adminhtml/system.xml + Helper\Data::XML_PATH_FAQ_ROUTE).
+        // v1.0.2 and earlier read `panth_faq/general/url_key` here,
+        // which is never written, so the admin's chosen slug had no
+        // effect and `/faq` was the only working path even when the
+        // merchant had configured `/faqs` / `/help` / etc.
         $faqUrlKey = $this->scopeConfig->getValue(
-            'panth_faq/general/url_key',
+            'panth_faq/general/faq_route',
             ScopeInterface::SCOPE_STORE
         );
 

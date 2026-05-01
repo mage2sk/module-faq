@@ -214,7 +214,7 @@ class View extends Action implements HttpGetActionInterface
             $baseUrl = rtrim($store->getBaseUrl(), '/');
 
             $faqUrlKey = $this->scopeConfig->getValue(
-                'panth_faq/general/url_key',
+                'panth_faq/general/faq_route',
                 ScopeInterface::SCOPE_STORE
             );
             if (!$faqUrlKey) {

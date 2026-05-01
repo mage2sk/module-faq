@@ -134,7 +134,7 @@ class ItemUrlRewriteObserver implements ObserverInterface
     {
         // Get configured FAQ URL key
         $faqUrlKey = $this->scopeConfig->getValue(
-            'panth_faq/general/url_key',
+            'panth_faq/general/faq_route',
             ScopeInterface::SCOPE_STORE,
             $storeId
         );

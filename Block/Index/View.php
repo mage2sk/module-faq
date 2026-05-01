@@ -119,7 +119,7 @@ class View extends Template
     {
         // Get configured FAQ URL key
         $faqUrlKey = $this->scopeConfig->getValue(
-            'panth_faq/general/url_key',
+            'panth_faq/general/faq_route',
             ScopeInterface::SCOPE_STORE
         );
 
@@ -205,7 +205,7 @@ class View extends Template
     {
         // Get configured FAQ URL key
         $faqUrlKey = $this->scopeConfig->getValue(
-            'panth_faq/general/url_key',
+            'panth_faq/general/faq_route',
             ScopeInterface::SCOPE_STORE
         );
 
