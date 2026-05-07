@@ -162,6 +162,81 @@
         </index>
     </table>
 
+    <!-- FAQ Item Per-Store Content Overrides (added in 1.1.0).
+         Each row holds the overridden values for one (item_id, store_id) pair.
+         All content columns are nullable: NULL means "use default" (the value
+         from panth_faq_item). Existing installs don't get any rows here on
+         upgrade, so behaviour is identical to pre-1.1.0 until an override is
+         actually saved. -->
+    <table name="panth_faq_item_value" resource="default" engine="innodb" comment="FAQ Item per-store content override">
+        <column xsi:type="int" name="value_id" unsigned="true" nullable="false" identity="true" comment="Value ID"/>
+        <column xsi:type="int" name="item_id" unsigned="true" nullable="false" comment="Item ID"/>
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="false" comment="Store ID"/>
+        <column xsi:type="varchar" name="question" nullable="true" length="500" comment="Question (override)"/>
+        <column xsi:type="text" name="answer" nullable="true" comment="Answer (override)"/>
+        <column xsi:type="varchar" name="url_key" nullable="true" length="255" comment="URL Key (override)"/>
+        <column xsi:type="smallint" name="is_active" unsigned="true" nullable="true" comment="Is Active (override; null = inherit)"/>
+        <column xsi:type="smallint" name="show_on_main" unsigned="true" nullable="true" comment="Show on Main (override; null = inherit)"/>
+        <column xsi:type="varchar" name="meta_title" nullable="true" length="255" comment="Meta Title (override)"/>
+        <column xsi:type="text" name="meta_description" nullable="true" comment="Meta Description (override)"/>
+        <column xsi:type="text" name="meta_keywords" nullable="true" comment="Meta Keywords (override)"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="value_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="PANTH_FAQ_ITEM_VALUE_ITEM_ID_STORE_ID">
+            <column name="item_id"/>
+            <column name="store_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="PANTH_FAQ_ITEM_VALUE_ITEM_ID_PANTH_FAQ_ITEM_ITEM_ID"
+                    table="panth_faq_item_value" column="item_id"
+                    referenceTable="panth_faq_item" referenceColumn="item_id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign" referenceId="PANTH_FAQ_ITEM_VALUE_STORE_ID_STORE_STORE_ID"
+                    table="panth_faq_item_value" column="store_id"
+                    referenceTable="store" referenceColumn="store_id" onDelete="CASCADE"/>
+        <index referenceId="PANTH_FAQ_ITEM_VALUE_STORE_ID" indexType="btree">
+            <column name="store_id"/>
+        </index>
+        <index referenceId="PANTH_FAQ_ITEM_VALUE_URL_KEY_STORE" indexType="btree">
+            <column name="url_key"/>
+            <column name="store_id"/>
+        </index>
+    </table>
+
+    <!-- FAQ Category Per-Store Content Overrides (added in 1.1.0). -->
+    <table name="panth_faq_category_value" resource="default" engine="innodb" comment="FAQ Category per-store content override">
+        <column xsi:type="int" name="value_id" unsigned="true" nullable="false" identity="true" comment="Value ID"/>
+        <column xsi:type="int" name="category_id" unsigned="true" nullable="false" comment="Category ID"/>
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="false" comment="Store ID"/>
+        <column xsi:type="varchar" name="name" nullable="true" length="255" comment="Name (override)"/>
+        <column xsi:type="varchar" name="url_key" nullable="true" length="255" comment="URL Key (override)"/>
+        <column xsi:type="text" name="description" nullable="true" comment="Description (override)"/>
+        <column xsi:type="varchar" name="icon" nullable="true" length="255" comment="Icon (override)"/>
+        <column xsi:type="smallint" name="is_active" unsigned="true" nullable="true" comment="Is Active (override; null = inherit)"/>
+        <column xsi:type="varchar" name="meta_title" nullable="true" length="255" comment="Meta Title (override)"/>
+        <column xsi:type="text" name="meta_description" nullable="true" comment="Meta Description (override)"/>
+        <column xsi:type="text" name="meta_keywords" nullable="true" comment="Meta Keywords (override)"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="value_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="PANTH_FAQ_CATEGORY_VALUE_CATEGORY_ID_STORE_ID">
+            <column name="category_id"/>
+            <column name="store_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="PANTH_FAQ_CATEGORY_VALUE_CATEGORY_ID_PANTH_FAQ_CATEGORY_CATEGORY_ID"
+                    table="panth_faq_category_value" column="category_id"
+                    referenceTable="panth_faq_category" referenceColumn="category_id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign" referenceId="PANTH_FAQ_CATEGORY_VALUE_STORE_ID_STORE_STORE_ID"
+                    table="panth_faq_category_value" column="store_id"
+                    referenceTable="store" referenceColumn="store_id" onDelete="CASCADE"/>
+        <index referenceId="PANTH_FAQ_CATEGORY_VALUE_STORE_ID" indexType="btree">
+            <column name="store_id"/>
+        </index>
+        <index referenceId="PANTH_FAQ_CATEGORY_VALUE_URL_KEY_STORE" indexType="btree">
+            <column name="url_key"/>
+            <column name="store_id"/>
+        </index>
+    </table>
+
     <!-- FAQ Item FAQ Category Relation (Many-to-Many) -->
     <table name="panth_faq_item_faq_category" resource="default" engine="innodb" comment="FAQ Item FAQ Category Relation">
         <column xsi:type="int" name="item_id" unsigned="true" nullable="false" comment="Item ID"/>

@@ -1,8 +1,47 @@
 <?xml version="1.0"?>
+<!--
+/**
+ * FAQ Item edit layout — adds the standard Magento store-switcher button
+ * to the page header so admins can scope content to a specific store view.
+ * Selecting a store appends ?store=<id> to the URL; the DataProvider and
+ * Save controller pick that up and route the read/write through the
+ * per-store override table.
+ */
+-->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <update handle="styles"/>
     <update handle="editor"/>
     <body>
+        <!--
+            Same pattern Magento Catalog uses for catalog_category_edit.xml:
+            drop the Store\Switcher block straight into page.main.actions
+            (not page.actions.toolbar) so it renders on the LEFT side of the
+            page header, beside the title — instead of next to the
+            Save/Delete buttons on the right.
+        -->
+        <referenceContainer name="page.main.actions">
+            <!--
+                Don't call setSwitchUrl here — passing a route string (rather
+                than a real URL) makes the switcher JS concatenate "store/N/"
+                to the raw string, producing broken URLs like
+                "faq/item/editstore/1". The default getSwitchUrl() builds
+                ?_current=1 against *|*|* which preserves item_id + appends
+                store/N correctly via Magento's URL builder.
+            -->
+            <!--
+                setUseConfirm intentionally NOT called — Magento's default
+                is to show "Please confirm scope switching. All data that
+                hasn't been saved will be lost." on every change, matching
+                the Catalog category/product behaviour the merchant team
+                expects. We don't want to silently swallow unsaved edits.
+            -->
+            <block class="Magento\Backend\Block\Store\Switcher" name="store_switcher"
+                   template="Magento_Backend::store/switcher.phtml">
+                <action method="setDefaultStoreName">
+                    <argument name="params" xsi:type="string" translate="true">All Store Views</argument>
+                </action>
+            </block>
+        </referenceContainer>
         <referenceContainer name="content">
             <uiComponent name="faq_item_form"/>
         </referenceContainer>

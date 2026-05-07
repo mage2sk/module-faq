@@ -87,7 +87,7 @@
                                             aria-labelledby="<?= $escaper->escapeHtmlAttr($block->getItemAccordionId($category->getId(), $item->getId())) ?>-label"
                                             hidden>
                                             <div class="faq-answer">
-                                                <?= /* @noEscape */ $item->getAnswer() ?>
+                                                <?= /* @noEscape */ $block->getFaqHelper()->renderRichText($item->getAnswer()) ?>
                                             </div>
                                         </div>
                                     </article>

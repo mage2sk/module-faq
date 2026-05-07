@@ -32,7 +32,7 @@ $voteUrl = $block->getUrl('faq/vote/submit');
 
         <!-- Answer -->
         <div class="prose max-w-none mb-8" style="color: var(--color-fg-secondary, #404040);">
-            <?= /* @noEscape */ $item->getAnswer() ?>
+            <?= /* @noEscape */ $block->getFaqHelper()->renderRichText($item->getAnswer()) ?>
         </div>
 
         <!-- Meta + Voting -->

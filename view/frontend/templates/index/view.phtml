@@ -44,7 +44,7 @@ $categories = $block->getFaqCategories();
 
             <div class="faq-item-content">
                 <div class="faq-answer">
-                    <?= /* @noEscape */ $item->getAnswer() ?>
+                    <?= /* @noEscape */ $block->getFaqHelper()->renderRichText($item->getAnswer()) ?>
                 </div>
 
                 <?php if ($showViewCount): ?>

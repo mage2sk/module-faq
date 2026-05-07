@@ -13,6 +13,7 @@ namespace Panth\Faq\Block\Faq;
 
 use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\Element\Template\Context;
+use Panth\Faq\Helper\Data as FaqHelper;
 use Panth\Faq\Model\ResourceModel\Category\CollectionFactory as CategoryCollectionFactory;
 use Panth\Faq\Model\ResourceModel\Item\CollectionFactory as ItemCollectionFactory;
 
@@ -39,15 +40,28 @@ class Listing extends Template
      * @param ItemCollectionFactory $itemCollectionFactory
      * @param array $data
      */
+    /** @var FaqHelper */
+    protected $faqHelper;
+
     public function __construct(
         Context $context,
         CategoryCollectionFactory $categoryCollectionFactory,
         ItemCollectionFactory $itemCollectionFactory,
+        FaqHelper $faqHelper,
         array $data = []
     ) {
         $this->categoryCollectionFactory = $categoryCollectionFactory;
         $this->itemCollectionFactory = $itemCollectionFactory;
+        $this->faqHelper = $faqHelper;
         parent::__construct($context, $data);
+    }
+
+    /**
+     * @return FaqHelper
+     */
+    public function getFaqHelper(): FaqHelper
+    {
+        return $this->faqHelper;
     }
 
     /**

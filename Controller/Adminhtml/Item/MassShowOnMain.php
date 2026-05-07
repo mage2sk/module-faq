@@ -13,75 +13,61 @@ namespace Panth\Faq\Controller\Adminhtml\Item;
 
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Ui\Component\MassAction\Filter;
-use Panth\Faq\Model\ResourceModel\Item\CollectionFactory;
 use Panth\Faq\Api\ItemRepositoryInterface;
+use Panth\Faq\Model\ResourceModel\Item\CollectionFactory;
 
 class MassShowOnMain extends Action
 {
-    /**
-     * @var Filter
-     */
-    protected $filter;
+    public const ADMIN_RESOURCE = 'Panth_Faq::item_save';
 
-    /**
-     * @var CollectionFactory
-     */
-    protected $collectionFactory;
-
-    /**
-     * @var ItemRepositoryInterface
-     */
-    protected $itemRepository;
-
-    /**
-     * @param Context $context
-     * @param Filter $filter
-     * @param CollectionFactory $collectionFactory
-     * @param ItemRepositoryInterface $itemRepository
-     */
     public function __construct(
         Context $context,
-        Filter $filter,
-        CollectionFactory $collectionFactory,
-        ItemRepositoryInterface $itemRepository
+        protected Filter $filter,
+        protected CollectionFactory $collectionFactory,
+        protected ItemRepositoryInterface $itemRepository
     ) {
-        $this->filter = $filter;
-        $this->collectionFactory = $collectionFactory;
-        $this->itemRepository = $itemRepository;
         parent::__construct($context);
     }
 
-    /**
-     * Execute action
-     *
-     * @return \Magento\Backend\Model\View\Result\Redirect
-     */
     public function execute()
     {
-        $collection = $this->filter->getCollection($this->collectionFactory->create());
-        $collectionSize = $collection->getSize();
-
-        foreach ($collection as $item) {
-            $item->setShowOnMain(1);
-            $this->itemRepository->save($item);
+        $resultRedirect = $this->resultRedirectFactory->create();
+        try {
+            $collection = $this->filter->getCollection($this->collectionFactory->create());
+        } catch (LocalizedException $e) {
+            $this->messageManager->addErrorMessage($e->getMessage());
+            return $resultRedirect->setPath('*/*/');
         }
 
-        $this->messageManager->addSuccessMessage(
-            __('A total of %1 FAQ item(s) have been set to show on main page.', $collectionSize)
-        );
+        $ok = 0;
+        $failed = 0;
+        foreach ($collection->getAllIds() as $id) {
+            try {
+                $item = $this->itemRepository->getById((int)$id);
+                $item->setShowOnMain(1);
+                $this->itemRepository->save($item);
+                $ok++;
+            } catch (\Throwable $e) {
+                $failed++;
+                $this->messageManager->addErrorMessage(
+                    __('FAQ item %1: %2', $id, $e->getMessage())
+                );
+            }
+        }
 
-        $resultRedirect = $this->resultRedirectFactory->create();
+        if ($ok > 0) {
+            $this->messageManager->addSuccessMessage(
+                __('A total of %1 FAQ item(s) have been set to show on main page.', $ok)
+            );
+        }
+        if ($failed > 0 && $ok === 0) {
+            $this->messageManager->addWarningMessage(
+                __('No FAQ items were updated. See errors above.')
+            );
+        }
+
         return $resultRedirect->setPath('*/*/');
-    }
-
-    /**
-     * Check ACL
-     *
-     * @return bool
-     */
-    protected function _isAllowed()
-    {
-        return $this->_authorization->isAllowed('Panth_Faq::item');
     }
 }

@@ -13,53 +13,25 @@ namespace Panth\Faq\Controller\Adminhtml\Item;
 
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
-use Panth\Faq\Api\ItemRepositoryInterface;
-use Panth\Faq\Model\ItemFactory;
 use Magento\Framework\App\Request\DataPersistorInterface;
 use Magento\Framework\Exception\LocalizedException;
+use Panth\Faq\Api\ItemRepositoryInterface;
+use Panth\Faq\Model\ItemFactory;
+use Panth\Faq\Model\ResourceModel\Item as ItemResource;
 
 class Save extends Action
 {
-    const ADMIN_RESOURCE = 'Panth_Faq::item_save';
+    public const ADMIN_RESOURCE = 'Panth_Faq::item_save';
 
-    /**
-     * @var ItemRepositoryInterface
-     */
-    protected $itemRepository;
-
-    /**
-     * @var ItemFactory
-     */
-    protected $itemFactory;
-
-    /**
-     * @var DataPersistorInterface
-     */
-    protected $dataPersistor;
-
-    /**
-     * @param Context $context
-     * @param ItemRepositoryInterface $itemRepository
-     * @param ItemFactory $itemFactory
-     * @param DataPersistorInterface $dataPersistor
-     */
     public function __construct(
         Context $context,
-        ItemRepositoryInterface $itemRepository,
-        ItemFactory $itemFactory,
-        DataPersistorInterface $dataPersistor
+        protected ItemRepositoryInterface $itemRepository,
+        protected ItemFactory $itemFactory,
+        protected DataPersistorInterface $dataPersistor
     ) {
         parent::__construct($context);
-        $this->itemRepository = $itemRepository;
-        $this->itemFactory = $itemFactory;
-        $this->dataPersistor = $dataPersistor;
     }
 
-    /**
-     * Execute action
-     *
-     * @return \Magento\Framework\Controller\Result\Redirect
-     */
     public function execute()
     {
         $resultRedirect = $this->resultRedirectFactory->create();
@@ -67,22 +39,64 @@ class Save extends Action
 
         if ($data) {
             $id = $this->getRequest()->getParam('item_id');
+            // Scope can come from either the URL ?store= param (set by the
+            // store-switcher button) or from the form's hidden store_scope_id
+            // field. The latter survives even when the form's submitUrl
+            // doesn't carry the URL query string.
+            $storeScopeId = (int)$this->getRequest()->getParam('store', 0);
+            if ($storeScopeId === 0) {
+                $storeScopeId = (int)($data['store_scope_id'] ?? 0);
+            }
 
             try {
-                if ($id) {
-                    $model = $this->itemRepository->getById($id);
+                $model = $id
+                    ? $this->itemRepository->getById((int)$id)
+                    : $this->itemFactory->create();
+
+                if ($storeScopeId > 0) {
+                    // Apply incoming overrides only — do NOT overwrite the
+                    // main row with scoped values. We collect the per-store
+                    // payload and the `use_default` flags, then persist via
+                    // the resource model's saveStoreValues hook.
+                    $useDefault = $this->normalizeUseDefault(
+                        $data['use_default'] ?? [],
+                        ItemResource::SCOPED_FIELDS
+                    );
+                    $scopedPayload = [];
+                    foreach (ItemResource::SCOPED_FIELDS as $field) {
+                        if (in_array($field, $useDefault, true)) {
+                            // Inherit default — clear any local override.
+                            $scopedPayload[$field] = null;
+                            continue;
+                        }
+                        if (array_key_exists($field, $data)) {
+                            $scopedPayload[$field] = $data[$field];
+                        }
+                    }
+                    foreach ($scopedPayload as $k => $v) {
+                        $model->setData($k, $v);
+                    }
+                    $model->setData('store_scope_id', $storeScopeId);
+                    $model->setData('use_default', $useDefault);
                 } else {
-                    $model = $this->itemFactory->create();
+                    // Default scope: write straight to main row, but skip
+                    // store_scope_id / use_default plumbing keys.
+                    unset($data['use_default'], $data['store_scope_id']);
+                    $model->setData(array_merge($model->getData(), $data));
                 }
 
-                $model->setData($data);
-                
-                // Handle store IDs
+                // Backward compat: pre-1.1.0 the form had a "Show on Store
+                // Views" multiselect; we removed it because the store-
+                // switcher above the form now controls scope. If a custom
+                // installation still posts store_id, honour it; otherwise
+                // default a brand-new entity to "all stores" (store_id = 0
+                // = admin/wildcard) so it's visible everywhere by default.
+                // Existing entities are left as-is.
                 if (isset($data['store_id'])) {
                     $model->setStores($data['store_id']);
+                } elseif (!$id) {
+                    $model->setStores([0]);
                 }
-
-                // Handle product IDs
                 if (isset($data['products'])) {
                     $products = $data['products'];
                     if (is_string($products)) {
@@ -90,8 +104,6 @@ class Save extends Action
                     }
                     $model->setProducts($products);
                 }
-
-                // Handle catalog category IDs
                 if (isset($data['catalog_categories'])) {
                     $categories = $data['catalog_categories'];
                     if (is_string($categories)) {
@@ -99,8 +111,6 @@ class Save extends Action
                     }
                     $model->setCatalogCategories($categories);
                 }
-
-                // Handle page IDs
                 if (isset($data['pages'])) {
                     $pages = $data['pages'];
                     if (is_string($pages)) {
@@ -114,19 +124,54 @@ class Save extends Action
                 $this->dataPersistor->clear('panth_faq_item');
 
                 if ($this->getRequest()->getParam('back')) {
-                    return $resultRedirect->setPath('*/*/edit', ['item_id' => $model->getId()]);
+                    $params = ['item_id' => $model->getId()];
+                    if ($storeScopeId > 0) {
+                        $params['store'] = $storeScopeId;
+                    }
+                    return $resultRedirect->setPath('*/*/edit', $params);
                 }
                 return $resultRedirect->setPath('*/*/');
             } catch (LocalizedException $e) {
                 $this->messageManager->addErrorMessage($e->getMessage());
-            } catch (\Exception $e) {
-                $this->messageManager->addExceptionMessage($e, __('Something went wrong while saving the FAQ item.'));
+            } catch (\Throwable $e) {
+                $this->messageManager->addExceptionMessage(
+                    $e,
+                    __('Something went wrong while saving the FAQ item.')
+                );
             }
 
             $this->dataPersistor->set('panth_faq_item', $data);
-            return $resultRedirect->setPath('*/*/edit', ['item_id' => $id]);
+            $params = ['item_id' => $id];
+            if ($storeScopeId > 0) {
+                $params['store'] = $storeScopeId;
+            }
+            return $resultRedirect->setPath('*/*/edit', $params);
         }
 
         return $resultRedirect->setPath('*/*/');
+    }
+
+    /**
+     * Translate the form's `use_default` payload into a flat list of field
+     * names. The form sends either `use_default[<field>] = "1"` (associative)
+     * or a numeric array of field names; both are normalised to a list.
+     *
+     * @param mixed $raw
+     * @param string[] $allowed
+     * @return string[]
+     */
+    private function normalizeUseDefault($raw, array $allowed): array
+    {
+        if (!is_array($raw)) {
+            return [];
+        }
+        $list = [];
+        foreach ($raw as $k => $v) {
+            $candidate = is_string($k) ? $k : (string)$v;
+            if ($v !== '0' && $v !== 0 && $v !== false && in_array($candidate, $allowed, true)) {
+                $list[] = $candidate;
+            }
+        }
+        return array_values(array_unique($list));
     }
 }

@@ -3,18 +3,41 @@ declare(strict_types=1);
 
 namespace Panth\Faq\Model\Item;
 
-use Panth\Faq\Model\ResourceModel\Item\CollectionFactory;
 use Magento\Framework\App\Request\DataPersistorInterface;
-use Magento\Ui\DataProvider\AbstractDataProvider;
-use Panth\Faq\Logger\Logger;
+use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\ResourceConnection;
+use Magento\Ui\DataProvider\AbstractDataProvider;
+use Panth\Faq\Api\ItemRepositoryInterface;
+use Panth\Faq\Logger\Logger;
+use Panth\Faq\Model\ResourceModel\Item as ItemResource;
+use Panth\Faq\Model\ResourceModel\Item\CollectionFactory;
 
+/**
+ * FAQ item edit-form DataProvider — store-scope aware.
+ *
+ * When the admin opens the form with `?store=<id>` (the standard Magento
+ * store-switcher querystring):
+ *   - The model is reloaded through ItemRepository with `store_scope_id`
+ *     set, so the resource model overlays per-store override values and
+ *     populates the `use_default` array.
+ *   - getMeta() injects `service.template = ui/form/element/helper/service`
+ *     into every scoped field's metadata. That triggers Magento's stock
+ *     "Use Default Value" inline checkbox (same one Catalog uses for
+ *     scoped product attributes), which auto-binds the field's disabled
+ *     state via Knockout's `isUseDefault` and submits
+ *     `use_default[<field>] = 1` on form post.
+ *
+ * In default scope (no ?store= or store=0), the form behaves exactly as
+ * pre-1.1.0 — no service template, no checkboxes, plain admin form.
+ */
 class DataProvider extends AbstractDataProvider
 {
     protected $dataPersistor;
     protected $loadedData;
     protected $logger;
-    protected $resourceConnection;
+    protected ResourceConnection $resourceConnection;
+    protected ItemRepositoryInterface $itemRepository;
+    protected RequestInterface $request;
 
     public function __construct(
         $name,
@@ -24,6 +47,8 @@ class DataProvider extends AbstractDataProvider
         DataPersistorInterface $dataPersistor,
         Logger $logger,
         ResourceConnection $resourceConnection,
+        ItemRepositoryInterface $itemRepository,
+        RequestInterface $request,
         array $meta = [],
         array $data = []
     ) {
@@ -31,77 +56,109 @@ class DataProvider extends AbstractDataProvider
         $this->dataPersistor = $dataPersistor;
         $this->logger = $logger;
         $this->resourceConnection = $resourceConnection;
+        $this->itemRepository = $itemRepository;
+        $this->request = $request;
         parent::__construct($name, $primaryFieldName, $requestFieldName, $meta, $data);
-        $this->logger->info('FAQ Item DataProvider initialized');
+    }
+
+    /**
+     * Map each scoped field to the fieldset name it lives in inside the
+     * XML ui_component. The DataProvider's parent::getMeta() does NOT
+     * include the XML's static field tree, so we have to rebuild that
+     * shape here for the Magento UI form merger to overlay our added
+     * `service.template` + `imports.isUseDefault` config onto the right
+     * field at render time.
+     *
+     * Keep in sync with view/adminhtml/ui_component/faq_item_form.xml.
+     */
+    private const SCOPED_FIELD_FIELDSETS = [
+        'is_active'        => 'general',
+        'question'         => 'general',
+        'answer'           => 'general',
+        'show_on_main'     => 'general',
+        'url_key'          => 'search_engine_optimization',
+        'meta_title'       => 'search_engine_optimization',
+        'meta_description' => 'search_engine_optimization',
+        'meta_keywords'    => 'search_engine_optimization',
+    ];
+
+    public function getMeta()
+    {
+        $meta = parent::getMeta();
+        $storeScopeId = $this->getStoreScopeIdFromRequest();
+        if ($storeScopeId > 0) {
+            foreach (self::SCOPED_FIELD_FIELDSETS as $field => $fieldset) {
+                $meta[$fieldset]['children'][$field]['arguments']['data']['config']['service']['template']
+                    = 'ui/form/element/helper/service';
+                $meta[$fieldset]['children'][$field]['arguments']['data']['config']['imports']['isUseDefault']
+                    = '${ $.provider }:data.use_default.' . $field;
+            }
+        }
+        return $meta;
     }
 
     public function getData()
     {
-        $this->logger->info('===== FAQ Item DataProvider getData() called =====');
-
         if (isset($this->loadedData)) {
-            $this->logger->info('Returning cached loadedData', ['count' => count($this->loadedData)]);
             return $this->loadedData;
         }
 
         try {
-            // Load all items from collection
-            $items = $this->collection->getItems();
-            $this->logger->info('Collection loaded', ['count' => count($items)]);
+            $storeScopeId = $this->getStoreScopeIdFromRequest();
 
             $this->loadedData = [];
-            foreach ($items as $item) {
-                $itemData = $item->getData();
+            foreach ($this->collection->getItems() as $item) {
+                $itemId = (int)$item->getId();
 
-                // Load FAQ category assignments - use 'category_id' to match form field
-                $itemData['category_id'] = $this->getFaqCategoryIds($item->getId());
+                $faqCategoryIds = $this->getFaqCategoryIds($itemId);
 
-                $this->loadedData[$item->getId()] = $itemData;
-                $this->logger->info('Loaded item', [
-                    'item_id' => $item->getId(),
-                    'category_id' => $itemData['category_id']
-                ]);
+                if ($storeScopeId > 0) {
+                    $scoped = $this->itemRepository->getById($itemId);
+                    $scoped->setData('store_scope_id', $storeScopeId);
+                    $scoped->getResource()->load($scoped, $itemId);
+                    $itemData = $scoped->getData();
+                } else {
+                    $itemData = $item->getData();
+                }
+
+                $itemData['category_id'] = $faqCategoryIds;
+                $itemData['store_scope_id'] = $storeScopeId;
+
+                $this->loadedData[$itemId] = $itemData;
             }
 
-            // Check for persisted data (from failed save attempts)
-            $data = $this->dataPersistor->get('panth_faq_item');
-            if (!empty($data)) {
-                $this->logger->info('Found persisted data', ['has_id' => isset($data['item_id'])]);
-                $item = $this->collection->getNewEmptyItem();
-                $item->setData($data);
-                $this->loadedData[$item->getId()] = $item->getData();
+            $persisted = $this->dataPersistor->get('panth_faq_item');
+            if (!empty($persisted)) {
+                $tmp = $this->collection->getNewEmptyItem();
+                $tmp->setData($persisted);
+                $this->loadedData[$tmp->getId()] = $tmp->getData();
                 $this->dataPersistor->clear('panth_faq_item');
             }
 
-            $this->logger->info('Final loadedData', [
-                'count' => count($this->loadedData),
-                'keys' => array_keys($this->loadedData)
-            ]);
-
             return $this->loadedData;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('FAQ Item DataProvider error: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
             return [];
         }
     }
 
+    private function getStoreScopeIdFromRequest(): int
+    {
+        return (int)$this->request->getParam('store', 0);
+    }
+
     /**
-     * Get FAQ category IDs for an item
-     *
-     * @param int $itemId
-     * @return array
+     * @return int[]
      */
-    protected function getFaqCategoryIds($itemId)
+    protected function getFaqCategoryIds(int $itemId): array
     {
         $connection = $this->resourceConnection->getConnection();
         $junctionTable = $this->resourceConnection->getTableName('panth_faq_item_faq_category');
-
         $select = $connection->select()
             ->from($junctionTable, ['faq_category_id'])
             ->where('item_id = ?', $itemId);
-
-        return $connection->fetchCol($select);
+        return array_map('intval', $connection->fetchCol($select));
     }
 }

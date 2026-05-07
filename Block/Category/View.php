@@ -185,4 +185,16 @@ class View extends Template
     {
         return (bool)$this->faqHelper->getConfigValue(FaqHelper::XML_PATH_DEFAULT_OPEN_FAQS);
     }
+    /**
+     * Public accessor so storefront templates can call
+     * \$block->getFaqHelper()->renderRichText(...) without resorting to
+     * ObjectManager. Added in 1.1.0.
+     *
+     * @return \Panth\Faq\Helper\Data
+     */
+    public function getFaqHelper(): \Panth\Faq\Helper\Data
+    {
+        return $this->faqHelper;
+    }
+
 }

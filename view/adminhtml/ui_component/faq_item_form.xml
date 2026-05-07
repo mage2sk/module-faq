@@ -1,4 +1,31 @@
 <?xml version="1.0"?>
+<!--
+/**
+ * FAQ Item edit form (Panth_Faq 1.1.0+).
+ *
+ * Per-store-view scoping follows the native Magento Catalog convention:
+ *   1. Layout file faq_item_edit.xml drops a Magento\Backend\Block\Store\Switcher
+ *      into page.main.actions, so the scope dropdown sits on the LEFT of the
+ *      page header (same place catalog_category_edit puts it).
+ *   2. The DataProvider injects `service.template = ui/form/element/helper/service`
+ *      into the meta of every scoped field WHEN ?store=<id> is on the URL.
+ *      That single-template-per-field is what renders the small inline
+ *      "Use Default Value" checkbox you see on Catalog product attributes —
+ *      including the auto-`name="use_default[<field>]"` form submission and
+ *      the auto-toggle of the field's disabled state via Knockout's
+ *      isUseDefault binding (see vendor/magento/module-ui/view/base/web/js/
+ *      form/element/abstract.js, toggleUseDefault).
+ *   3. The DataProvider also seeds `data.use_default[<field>] = 1` for
+ *      every scoped field that currently inherits its default, so the
+ *      checkbox renders pre-checked and the field renders disabled until
+ *      the admin opts in.
+ *
+ * Result: this XML stays plain — no manual checkboxes, no imports/disabled
+ * binding wiring, no module CSS. Toggling, save payload, and visual
+ * rendering are all handled by Magento's stock Knockout abstract form
+ * element and the helper/service.html template.
+ */
+-->
 <form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
     <argument name="data" xsi:type="array">
         <item name="js_config" xsi:type="array">
@@ -10,6 +37,7 @@
     <settings>
         <buttons>
             <button name="back" class="Panth\Faq\Block\Adminhtml\Item\Edit\BackButton"/>
+            <button name="view_on_storefront" class="Panth\Faq\Block\Adminhtml\Item\Edit\ViewOnStorefrontButton"/>
             <button name="delete" class="Panth\Faq\Block\Adminhtml\Item\Edit\DeleteButton"/>
             <button name="save" class="Panth\Faq\Block\Adminhtml\Item\Edit\SaveButton"/>
             <button name="save_and_continue" class="Panth\Faq\Block\Adminhtml\Item\Edit\SaveAndContinueButton"/>
@@ -40,6 +68,7 @@
         <settings>
             <label translate="true">General Information</label>
         </settings>
+
         <field name="item_id" formElement="input">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
@@ -52,6 +81,20 @@
                 <dataScope>item_id</dataScope>
             </settings>
         </field>
+        <field name="store_scope_id" formElement="input">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">item</item>
+                    <item name="default" xsi:type="number">0</item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>number</dataType>
+                <visible>false</visible>
+                <dataScope>store_scope_id</dataScope>
+            </settings>
+        </field>
+
         <field name="is_active" sortOrder="10" formElement="checkbox">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
@@ -76,29 +119,16 @@
                 </checkbox>
             </formElements>
         </field>
-        <field name="store_id" sortOrder="20" formElement="multiselect">
-            <argument name="data" xsi:type="array">
-                <item name="config" xsi:type="array">
-                    <item name="source" xsi:type="string">item</item>
-                    <item name="default" xsi:type="number">0</item>
-                </item>
-            </argument>
-            <settings>
-                <validation>
-                    <rule name="required-entry" xsi:type="boolean">true</rule>
-                </validation>
-                <dataType>int</dataType>
-                <label translate="true">Store View</label>
-                <dataScope>store_id</dataScope>
-            </settings>
-            <formElements>
-                <multiselect>
-                    <settings>
-                        <options class="Magento\Store\Ui\Component\Listing\Column\Store\Options"/>
-                    </settings>
-                </multiselect>
-            </formElements>
-        </field>
+
+        <!--
+            "Show on Store Views" multiselect removed in 1.1.0.
+            The store-switcher above the form now controls scope and the
+            per-store is_active override controls per-store visibility,
+            making the membership multiselect redundant.
+            New entities default to store_id=0 (= visible on all stores)
+            via the Save controller; existing assignments are preserved.
+        -->
+
         <field name="question" sortOrder="30" formElement="input">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
@@ -114,6 +144,7 @@
                 <dataScope>question</dataScope>
             </settings>
         </field>
+
         <field name="answer" sortOrder="40" formElement="wysiwyg">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
@@ -141,6 +172,7 @@
                 </wysiwyg>
             </formElements>
         </field>
+
         <field name="category_id" sortOrder="50" formElement="multiselect">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
@@ -163,6 +195,7 @@
                 </multiselect>
             </formElements>
         </field>
+
         <field name="show_on_main" sortOrder="55" formElement="checkbox">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
@@ -187,6 +220,7 @@
                 </checkbox>
             </formElements>
         </field>
+
         <field name="sort_order" sortOrder="60" formElement="input">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
@@ -209,6 +243,7 @@
             <collapsible>true</collapsible>
             <opened>false</opened>
         </settings>
+
         <field name="url_key" sortOrder="10" formElement="input">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
@@ -221,6 +256,7 @@
                 <dataScope>url_key</dataScope>
             </settings>
         </field>
+
         <field name="meta_title" sortOrder="20" formElement="input">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
@@ -233,6 +269,7 @@
                 <dataScope>meta_title</dataScope>
             </settings>
         </field>
+
         <field name="meta_description" sortOrder="30" formElement="textarea">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
@@ -245,6 +282,7 @@
                 <dataScope>meta_description</dataScope>
             </settings>
         </field>
+
         <field name="meta_keywords" sortOrder="40" formElement="textarea">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">

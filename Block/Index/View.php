@@ -222,4 +222,16 @@ class View extends Template
 
         return $baseUrl . $faqUrlKey;
     }
+    /**
+     * Public accessor so storefront templates can call
+     * \$block->getFaqHelper()->renderRichText(...) without resorting to
+     * ObjectManager. Added in 1.1.0.
+     *
+     * @return \Panth\Faq\Helper\Data
+     */
+    public function getFaqHelper(): \Panth\Faq\Helper\Data
+    {
+        return $this->faqHelper;
+    }
+
 }

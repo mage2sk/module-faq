@@ -54,7 +54,7 @@ $isDefaultOpen = $block->isDefaultOpen();
                     <h1 class="category-title"><?= $block->escapeHtml($category->getName()) ?></h1>
                     <?php if ($showCategoryDesc && $category->getDescription()): ?>
                         <div class="category-description">
-                            <?= /* @noEscape */ $category->getDescription() ?>
+                            <?= /* @noEscape */ $block->getFaqHelper()->renderRichText($category->getDescription()) ?>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -69,7 +69,7 @@ $isDefaultOpen = $block->isDefaultOpen();
                                 </div>
                                 <div class="faq-item-content" style="display: <?= $isDefaultOpen ? 'block' : 'none' ?>;">
                                     <div class="faq-answer">
-                                        <?= /* @noEscape */ $item->getAnswer() ?>
+                                        <?= /* @noEscape */ $block->getFaqHelper()->renderRichText($item->getAnswer()) ?>
                                     </div>
                                     <?php if ($showViewCount): ?>
                                         <div class="faq-meta">

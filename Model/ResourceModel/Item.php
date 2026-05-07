@@ -11,11 +11,13 @@ declare(strict_types=1);
 
 namespace Panth\Faq\Model\ResourceModel;
 
+use Magento\Framework\App\Area;
+use Magento\Framework\App\State as AppState;
+use Magento\Framework\Event\ManagerInterface as EventManager;
+use Magento\Framework\Model\AbstractModel;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 use Magento\Framework\Model\ResourceModel\Db\Context;
-use Magento\Framework\Model\AbstractModel;
 use Magento\Store\Model\StoreManagerInterface;
-use Magento\Framework\Event\ManagerInterface as EventManager;
 
 class Item extends AbstractDb
 {
@@ -27,6 +29,25 @@ class Item extends AbstractDb
     const ITEM_CATALOG_CATEGORY_TABLE = 'panth_faq_item_catalog_category';
     const ITEM_PAGE_TABLE = 'panth_faq_item_page';
     const ITEM_FAQ_CATEGORY_TABLE = 'panth_faq_item_faq_category';
+    const ITEM_VALUE_TABLE = 'panth_faq_item_value';
+
+    /**
+     * Columns whose values can be overridden per store view.
+     * Order matters only for whitelist clarity; the resource model
+     * iterates this list when reading/writing override rows.
+     *
+     * @var string[]
+     */
+    public const SCOPED_FIELDS = [
+        'question',
+        'answer',
+        'url_key',
+        'is_active',
+        'show_on_main',
+        'meta_title',
+        'meta_description',
+        'meta_keywords',
+    ];
 
     /**
      * @var StoreManagerInterface
@@ -39,20 +60,54 @@ class Item extends AbstractDb
     protected $eventManager;
 
     /**
-     * @param Context $context
-     * @param StoreManagerInterface $storeManager
-     * @param EventManager $eventManager
-     * @param string $connectionName
+     * @var AppState
      */
+    protected $appState;
+
     public function __construct(
         Context $context,
         StoreManagerInterface $storeManager,
         EventManager $eventManager,
+        AppState $appState,
         $connectionName = null
     ) {
         parent::__construct($context, $connectionName);
         $this->storeManager = $storeManager;
         $this->eventManager = $eventManager;
+        $this->appState = $appState;
+    }
+
+    /**
+     * Resolve the active store-scope id to use for an in-flight load.
+     * Honours an explicit `store_scope_id` on the model first; otherwise
+     * falls back to the current frontend store. In adminhtml / cron / cli
+     * contexts the auto-detect is skipped so the main-row defaults stay
+     * canonical for admin grids and CLI tasks.
+     */
+    protected function resolveStoreScopeId(AbstractModel $object): int
+    {
+        $explicit = (int)$object->getData('store_scope_id');
+        if ($explicit > 0) {
+            return $explicit;
+        }
+        try {
+            $area = $this->appState->getAreaCode();
+        } catch (\Throwable) {
+            return 0;
+        }
+        if ($area !== Area::AREA_FRONTEND) {
+            return 0;
+        }
+        try {
+            $current = $this->storeManager->getStore();
+            // store_id 0 == admin scope; we only auto-merge for real
+            // storefront views (store_id > 0).
+            if ($current && (int)$current->getId() > 0) {
+                return (int)$current->getId();
+            }
+        } catch (\Throwable) {
+        }
+        return 0;
     }
 
     /**
@@ -76,14 +131,66 @@ class Item extends AbstractDb
     }
 
     /**
+     * Magento\Framework\Model\ResourceModel\Db\AbstractDb::load() does
+     * `$object->setData($freshDataArray)` which replaces every model
+     * property. Any caller-supplied `store_scope_id` is therefore wiped
+     * before _afterLoad runs and our merge has nothing to look at.
+     *
+     * Preserve the scope across the parent load.
+     */
+    public function load(AbstractModel $object, $value, $field = null)
+    {
+        $scope = $this->resolveStoreScopeId($object);
+        $result = parent::load($object, $value, $field);
+        if ($scope > 0) {
+            $object->setData('store_scope_id', $scope);
+            $this->mergeStoreOverrides($object);
+        }
+        return $result;
+    }
+
+    /**
      * Save store relation
      *
      * @param AbstractModel $object
      * @return $this
      */
+    /**
+     * When saving in a store-view scope (store_scope_id > 0), we MUST NOT
+     * write the scoped values to the main table — that would pollute the
+     * default value across every store. Stash the scoped values, swap in
+     * the persisted defaults, let the parent UPDATE run, then restore the
+     * scoped values for _afterSave to consume.
+     */
+    protected function _beforeSave(AbstractModel $object)
+    {
+        $storeScopeId = (int)$object->getData('store_scope_id');
+        if ($storeScopeId > 0 && (int)$object->getId() > 0) {
+            $defaults = $this->loadDefaultValues((int)$object->getId());
+            $snapshot = [];
+            foreach (self::SCOPED_FIELDS as $field) {
+                $snapshot[$field] = $object->getData($field);
+                if (array_key_exists($field, $defaults)) {
+                    $object->setData($field, $defaults[$field]);
+                }
+            }
+            $object->setData('_panth_scope_snapshot', $snapshot);
+        }
+        return parent::_beforeSave($object);
+    }
+
     protected function _afterSave(AbstractModel $object)
     {
+        $snapshot = $object->getData('_panth_scope_snapshot');
+        if (is_array($snapshot)) {
+            foreach ($snapshot as $field => $value) {
+                $object->setData($field, $value);
+            }
+            $object->unsetData('_panth_scope_snapshot');
+        }
+
         $this->saveStoreRelation($object);
+        $this->saveStoreValues($object);
         $this->saveProductRelation($object);
         $this->saveCatalogCategoryRelation($object);
         $this->savePageRelation($object);
@@ -93,6 +200,208 @@ class Item extends AbstractDb
         $this->eventManager->dispatch('panth_faq_item_save_after', ['item' => $object]);
 
         return parent::_afterSave($object);
+    }
+
+    /**
+     * Public proxy for {@see loadDefaultValues()} — used by the URL rewrite
+     * observer, which fires post-save and otherwise can't tell the model's
+     * potentially-scoped values apart from the persisted defaults.
+     *
+     * @return array<string, mixed>
+     */
+    public function loadDefaultValuesPublic(int $itemId): array
+    {
+        return $this->loadDefaultValues($itemId);
+    }
+
+    /**
+     * Read the persisted "default" (main-table) values for scoped fields.
+     * Used by _beforeSave to keep the main row clean during a store-scope save.
+     *
+     * @param int $itemId
+     * @return array<string, mixed>
+     */
+    protected function loadDefaultValues(int $itemId): array
+    {
+        if ($itemId <= 0) {
+            return [];
+        }
+        $connection = $this->getConnection();
+        $select = $connection->select()
+            ->from($this->getMainTable(), self::SCOPED_FIELDS)
+            ->where('item_id = ?', $itemId)
+            ->limit(1);
+        return (array)($connection->fetchRow($select) ?: []);
+    }
+
+    /**
+     * Persist per-store overrides.
+     *
+     * Save semantics (CMS-Page-style):
+     *   - When the model has store_scope_id == 0 / null, no per-store row is
+     *     written or modified — the main row already received the values.
+     *   - When store_scope_id is a positive store_id, an override row is
+     *     upserted for that (item_id, store_id). Each scoped field is set to
+     *     the model's current value unless the model's `use_default` array
+     *     contains that field name, in which case the field is stored as NULL
+     *     (= "inherit default"). If every scoped field would be NULL, the
+     *     override row is deleted instead so the storefront just falls
+     *     through to the main row.
+     *
+     * Backward compat: code that doesn't set store_scope_id behaves exactly
+     * like pre-1.1.0 (only the main row is touched).
+     *
+     * @param AbstractModel $object
+     * @return $this
+     */
+    protected function saveStoreValues(AbstractModel $object): self
+    {
+        $storeId = (int)$object->getData('store_scope_id');
+        if ($storeId <= 0) {
+            return $this;
+        }
+        $itemId = (int)$object->getId();
+        if ($itemId <= 0) {
+            return $this;
+        }
+
+        $useDefault = (array)$object->getData('use_default');
+        $row = ['item_id' => $itemId, 'store_id' => $storeId];
+        $allNull = true;
+        foreach (self::SCOPED_FIELDS as $field) {
+            if (in_array($field, $useDefault, true)) {
+                $row[$field] = null;
+            } else {
+                $value = $object->getData($field);
+                $row[$field] = ($value === '' || $value === null) ? null : $value;
+                if ($row[$field] !== null) {
+                    $allNull = false;
+                }
+            }
+        }
+
+        $connection = $this->getConnection();
+        $table = $this->getTable(self::ITEM_VALUE_TABLE);
+
+        if ($allNull) {
+            $connection->delete($table, [
+                'item_id = ?' => $itemId,
+                'store_id = ?' => $storeId,
+            ]);
+            return $this;
+        }
+
+        $connection->insertOnDuplicate(
+            $table,
+            $row,
+            self::SCOPED_FIELDS
+        );
+        return $this;
+    }
+
+    /**
+     * Read the override row for (itemId, storeId) and return field => value
+     * (excluding NULL values, which mean "use default").
+     *
+     * @param int $itemId
+     * @param int $storeId
+     * @return array<string, mixed>
+     */
+    public function getStoreOverrides(int $itemId, int $storeId): array
+    {
+        if ($itemId <= 0 || $storeId <= 0) {
+            return [];
+        }
+        $connection = $this->getConnection();
+        $select = $connection->select()
+            ->from($this->getTable(self::ITEM_VALUE_TABLE), self::SCOPED_FIELDS)
+            ->where('item_id = ?', $itemId)
+            ->where('store_id = ?', $storeId)
+            ->limit(1);
+        $row = $connection->fetchRow($select);
+        if (!$row) {
+            return [];
+        }
+        return array_filter($row, static fn ($v) => $v !== null);
+    }
+
+    /**
+     * Read every scoped column verbatim (NULL kept) for a (item, store) pair.
+     * Used by the admin DataProvider so it can populate the "use default"
+     * checkboxes correctly: a NULL column in the override row means the
+     * checkbox should be checked.
+     *
+     * @param int $itemId
+     * @param int $storeId
+     * @return array<string, mixed>
+     */
+    public function getStoreOverrideRow(int $itemId, int $storeId): array
+    {
+        if ($itemId <= 0 || $storeId <= 0) {
+            return [];
+        }
+        $connection = $this->getConnection();
+        $select = $connection->select()
+            ->from($this->getTable(self::ITEM_VALUE_TABLE), self::SCOPED_FIELDS)
+            ->where('item_id = ?', $itemId)
+            ->where('store_id = ?', $storeId)
+            ->limit(1);
+        return (array)($connection->fetchRow($select) ?: []);
+    }
+
+    /**
+     * Resolve item id for a given URL key, store-aware.
+     *
+     * Lookup order:
+     *   1. override row whose url_key matches AND (is_active override = 1 OR
+     *      override is NULL AND main is_active = 1)
+     *   2. main row whose url_key matches AND no per-store override exists
+     *      that points the same url_key elsewhere
+     *
+     * Falls back to a global lookup when storeId is 0.
+     *
+     * @return int|null
+     */
+    public function getItemIdByUrlKeyForStore(string $urlKey, int $storeId): ?int
+    {
+        if ($urlKey === '') {
+            return null;
+        }
+        $connection = $this->getConnection();
+        if ($storeId > 0) {
+            $select = $connection->select()
+                ->from(['v' => $this->getTable(self::ITEM_VALUE_TABLE)], ['item_id'])
+                ->joinLeft(
+                    ['m' => $this->getMainTable()],
+                    'v.item_id = m.item_id',
+                    []
+                )
+                ->where('v.store_id = ?', $storeId)
+                ->where('v.url_key = ?', $urlKey)
+                ->where('COALESCE(v.is_active, m.is_active) = ?', 1)
+                ->limit(1);
+            $id = $connection->fetchOne($select);
+            if ($id) {
+                return (int)$id;
+            }
+        }
+
+        // Fallback: main row, but skip rows that have an override with a
+        // different url_key for the current store (because the merchant
+        // explicitly relabelled the URL on this store).
+        $select = $connection->select()
+            ->from(['m' => $this->getMainTable()], ['item_id'])
+            ->joinLeft(
+                ['v' => $this->getTable(self::ITEM_VALUE_TABLE)],
+                'v.item_id = m.item_id AND v.store_id = ' . (int)$storeId,
+                []
+            )
+            ->where('m.url_key = ?', $urlKey)
+            ->where('COALESCE(v.is_active, m.is_active) = ?', 1)
+            ->where('v.url_key IS NULL OR v.url_key = ?', $urlKey)
+            ->limit(1);
+        $id = $connection->fetchOne($select);
+        return $id ? (int)$id : null;
     }
 
     /**
@@ -267,12 +576,58 @@ class Item extends AbstractDb
     protected function _afterLoad(AbstractModel $object)
     {
         $this->loadStoreRelation($object);
+        $this->mergeStoreOverrides($object);
         $this->loadProductRelation($object);
         $this->loadCatalogCategoryRelation($object);
         $this->loadPageRelation($object);
         $this->loadFaqCategoryRelation($object);
 
         return parent::_afterLoad($object);
+    }
+
+    /**
+     * If the model carries a positive `store_scope_id`, merge the override
+     * row's non-null values onto the loaded model. The original ("default")
+     * values are preserved under `<field>_default` keys so the admin form
+     * can show them as the fallback when "Use Default" is ticked.
+     *
+     * No-ops on default scope (store_scope_id = 0 / null), preserving the
+     * pre-1.1.0 behaviour for any caller that doesn't opt in.
+     *
+     * @param AbstractModel $object
+     * @return $this
+     */
+    protected function mergeStoreOverrides(AbstractModel $object): self
+    {
+        $storeId = (int)$object->getData('store_scope_id');
+        if ($storeId <= 0) {
+            return $this;
+        }
+        $itemId = (int)$object->getId();
+        if ($itemId <= 0) {
+            return $this;
+        }
+
+        // Snapshot defaults before overlaying — admin DataProvider needs them.
+        $defaults = [];
+        foreach (self::SCOPED_FIELDS as $field) {
+            $defaults[$field] = $object->getData($field);
+        }
+        $object->setData('store_default_values', $defaults);
+
+        $overrideRow = $this->getStoreOverrideRow($itemId, $storeId);
+        $useDefault = [];
+        foreach (self::SCOPED_FIELDS as $field) {
+            if (!array_key_exists($field, $overrideRow) || $overrideRow[$field] === null) {
+                // Inherit default — already on the model from the main load.
+                $useDefault[$field] = 1;
+                continue;
+            }
+            $object->setData($field, $overrideRow[$field]);
+        }
+        $object->setData('use_default', $useDefault);
+
+        return $this;
     }
 
     /**

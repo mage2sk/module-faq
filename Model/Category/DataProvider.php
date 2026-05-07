@@ -3,16 +3,25 @@ declare(strict_types=1);
 
 namespace Panth\Faq\Model\Category;
 
-use Panth\Faq\Model\ResourceModel\Category\CollectionFactory;
 use Magento\Framework\App\Request\DataPersistorInterface;
+use Magento\Framework\App\RequestInterface;
 use Magento\Ui\DataProvider\AbstractDataProvider;
+use Panth\Faq\Api\CategoryRepositoryInterface;
 use Panth\Faq\Logger\Logger;
+use Panth\Faq\Model\ResourceModel\Category as CategoryResource;
+use Panth\Faq\Model\ResourceModel\Category\CollectionFactory;
 
+/**
+ * FAQ category edit-form DataProvider — store-scope aware.
+ * Mirrors the Item DataProvider; see that file for the design notes.
+ */
 class DataProvider extends AbstractDataProvider
 {
     protected $dataPersistor;
     protected $loadedData;
     protected $logger;
+    protected CategoryRepositoryInterface $categoryRepository;
+    protected RequestInterface $request;
 
     public function __construct(
         $name,
@@ -21,57 +30,94 @@ class DataProvider extends AbstractDataProvider
         CollectionFactory $collectionFactory,
         DataPersistorInterface $dataPersistor,
         Logger $logger,
+        CategoryRepositoryInterface $categoryRepository,
+        RequestInterface $request,
         array $meta = [],
         array $data = []
     ) {
         $this->collection = $collectionFactory->create();
         $this->dataPersistor = $dataPersistor;
         $this->logger = $logger;
+        $this->categoryRepository = $categoryRepository;
+        $this->request = $request;
         parent::__construct($name, $primaryFieldName, $requestFieldName, $meta, $data);
-        $this->logger->info('FAQ Category DataProvider initialized');
+    }
+
+    /**
+     * Field → fieldset map. See Item DataProvider for design rationale.
+     * Keep in sync with view/adminhtml/ui_component/faq_category_form.xml.
+     */
+    private const SCOPED_FIELD_FIELDSETS = [
+        'is_active'        => 'general',
+        'name'             => 'general',
+        'url_key'          => 'general',
+        'description'      => 'general',
+        'icon'             => 'general',
+        'meta_title'       => 'search_engine_optimization',
+        'meta_description' => 'search_engine_optimization',
+        'meta_keywords'    => 'search_engine_optimization',
+    ];
+
+    public function getMeta()
+    {
+        $meta = parent::getMeta();
+        $storeScopeId = $this->getStoreScopeIdFromRequest();
+        if ($storeScopeId > 0) {
+            foreach (self::SCOPED_FIELD_FIELDSETS as $field => $fieldset) {
+                $meta[$fieldset]['children'][$field]['arguments']['data']['config']['service']['template']
+                    = 'ui/form/element/helper/service';
+                $meta[$fieldset]['children'][$field]['arguments']['data']['config']['imports']['isUseDefault']
+                    = '${ $.provider }:data.use_default.' . $field;
+            }
+        }
+        return $meta;
     }
 
     public function getData()
     {
-        $this->logger->info('===== FAQ Category DataProvider getData() called =====');
-
         if (isset($this->loadedData)) {
-            $this->logger->info('Returning cached loadedData', ['count' => count($this->loadedData)]);
             return $this->loadedData;
         }
 
         try {
-            // Load all categories from collection
-            $items = $this->collection->getItems();
-            $this->logger->info('Collection loaded', ['count' => count($items)]);
+            $storeScopeId = $this->getStoreScopeIdFromRequest();
 
             $this->loadedData = [];
-            foreach ($items as $category) {
-                $this->loadedData[$category->getId()] = $category->getData();
-                $this->logger->info('Loaded category', ['category_id' => $category->getId()]);
+            foreach ($this->collection->getItems() as $category) {
+                $categoryId = (int)$category->getId();
+
+                if ($storeScopeId > 0) {
+                    $scoped = $this->categoryRepository->getById($categoryId);
+                    $scoped->setData('store_scope_id', $storeScopeId);
+                    $scoped->getResource()->load($scoped, $categoryId);
+                    $data = $scoped->getData();
+                } else {
+                    $data = $category->getData();
+                }
+
+                $data['store_scope_id'] = $storeScopeId;
+                $this->loadedData[$categoryId] = $data;
             }
 
-            // Check for persisted data (from failed save attempts)
-            $data = $this->dataPersistor->get('panth_faq_category');
-            if (!empty($data)) {
-                $this->logger->info('Found persisted data', ['has_id' => isset($data['category_id'])]);
-                $category = $this->collection->getNewEmptyItem();
-                $category->setData($data);
-                $this->loadedData[$category->getId()] = $category->getData();
+            $persisted = $this->dataPersistor->get('panth_faq_category');
+            if (!empty($persisted)) {
+                $tmp = $this->collection->getNewEmptyItem();
+                $tmp->setData($persisted);
+                $this->loadedData[$tmp->getId()] = $tmp->getData();
                 $this->dataPersistor->clear('panth_faq_category');
             }
 
-            $this->logger->info('Final loadedData', [
-                'count' => count($this->loadedData),
-                'keys' => array_keys($this->loadedData)
-            ]);
-
             return $this->loadedData;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('FAQ Category DataProvider error: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
             return [];
         }
+    }
+
+    private function getStoreScopeIdFromRequest(): int
+    {
+        return (int)$this->request->getParam('store', 0);
     }
 }

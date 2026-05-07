@@ -11,11 +11,14 @@ declare(strict_types=1);
 
 namespace Panth\Faq\Observer;
 
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
-use Magento\UrlRewrite\Model\UrlRewriteFactory;
-use Magento\UrlRewrite\Model\ResourceModel\UrlRewriteCollectionFactory;
+use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\UrlRewrite\Model\ResourceModel\UrlRewriteCollectionFactory;
+use Magento\UrlRewrite\Model\UrlRewriteFactory;
+use Panth\Faq\Model\ResourceModel\Category as CategoryResource;
 use Psr\Log\LoggerInterface;
 
 class CategoryUrlRewriteObserver implements ObserverInterface
@@ -43,62 +46,73 @@ class CategoryUrlRewriteObserver implements ObserverInterface
     protected $logger;
 
     /**
-     * @param UrlRewriteFactory $urlRewriteFactory
-     * @param UrlRewriteCollectionFactory $urlRewriteCollectionFactory
-     * @param StoreManagerInterface $storeManager
-     * @param LoggerInterface $logger
+     * @var ScopeConfigInterface
      */
+    protected $scopeConfig;
+
+    /**
+     * @var CategoryResource
+     */
+    protected $categoryResource;
+
     public function __construct(
         UrlRewriteFactory $urlRewriteFactory,
         UrlRewriteCollectionFactory $urlRewriteCollectionFactory,
         StoreManagerInterface $storeManager,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        ScopeConfigInterface $scopeConfig,
+        CategoryResource $categoryResource
     ) {
         $this->urlRewriteFactory = $urlRewriteFactory;
         $this->urlRewriteCollectionFactory = $urlRewriteCollectionFactory;
         $this->storeManager = $storeManager;
         $this->logger = $logger;
+        $this->scopeConfig = $scopeConfig;
+        $this->categoryResource = $categoryResource;
     }
 
-    /**
-     * Generate URL rewrites for FAQ category
-     *
-     * @param Observer $observer
-     * @return void
-     */
     public function execute(Observer $observer)
     {
         try {
             $category = $observer->getEvent()->getCategory();
-
             if (!$category || !$category->getId() || !$category->getUrlKey()) {
                 return;
             }
 
-            // Delete existing URL rewrites for this category
-            $this->deleteExistingRewrites($category->getId());
+            $categoryId = (int)$category->getId();
 
-            // Get stores
+            // Read default url_key from the main table (see Item observer
+            // for the rationale).
+            $defaults = $this->categoryResource->loadDefaultValuesPublic($categoryId);
+            $defaultUrlKey = (string)($defaults['url_key'] ?? $category->getUrlKey());
+            if ($defaultUrlKey === '') {
+                return;
+            }
+
+            $this->deleteExistingRewrites($categoryId);
+
             $stores = $category->getStores() ?: $category->getData('store_id') ?: [0];
             if (!is_array($stores)) {
                 $stores = [$stores];
             }
 
             foreach ($stores as $storeId) {
-                $this->createUrlRewrite($category, (int)$storeId);
+                $storeId = (int)$storeId;
+                $slug = $defaultUrlKey;
+                if ($storeId > 0) {
+                    $override = $this->categoryResource->getStoreOverrideRow($categoryId, $storeId);
+                    if (!empty($override['url_key'])) {
+                        $slug = (string)$override['url_key'];
+                    }
+                }
+                $this->createUrlRewrite($categoryId, $slug, $storeId);
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('FAQ Category URL Rewrite Error: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Delete existing URL rewrites
-     *
-     * @param int $categoryId
-     * @return void
-     */
-    protected function deleteExistingRewrites($categoryId)
+    protected function deleteExistingRewrites(int $categoryId): void
     {
         $collection = $this->urlRewriteCollectionFactory->create();
         $collection->addFieldToFilter('entity_type', self::ENTITY_TYPE)
@@ -107,32 +121,35 @@ class CategoryUrlRewriteObserver implements ObserverInterface
         foreach ($collection as $urlRewrite) {
             try {
                 $urlRewrite->delete();
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $this->logger->error('Error deleting URL rewrite: ' . $e->getMessage());
             }
         }
     }
 
-    /**
-     * Create URL rewrite
-     *
-     * @param \Panth\Faq\Model\Category $category
-     * @param int $storeId
-     * @return void
-     */
-    protected function createUrlRewrite($category, $storeId)
+    protected function createUrlRewrite(int $categoryId, string $slug, int $storeId): void
     {
+        $faqUrlKey = $this->scopeConfig->getValue(
+            'panth_faq/general/faq_route',
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+        if (!$faqUrlKey) {
+            $faqUrlKey = 'faq';
+        }
+        $faqUrlKey = trim((string)$faqUrlKey, '/');
+
         $urlRewrite = $this->urlRewriteFactory->create();
         $urlRewrite->setEntityType(self::ENTITY_TYPE)
-            ->setEntityId($category->getId())
-            ->setRequestPath('faq/category/' . $category->getUrlKey())
-            ->setTargetPath('faq/category/view/id/' . $category->getId())
+            ->setEntityId($categoryId)
+            ->setRequestPath($faqUrlKey . '/category/' . $slug)
+            ->setTargetPath('faq/category/view/id/' . $categoryId)
             ->setStoreId($storeId)
             ->setIsAutogenerated(1);
 
         try {
             $urlRewrite->save();
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('Error creating URL rewrite: ' . $e->getMessage());
         }
     }

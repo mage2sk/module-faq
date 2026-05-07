@@ -11,11 +11,51 @@ declare(strict_types=1);
 
 namespace Panth\Faq\Helper;
 
+use Magento\Cms\Model\Template\FilterProvider;
 use Magento\Framework\App\Helper\AbstractHelper;
+use Magento\Framework\App\Helper\Context;
 use Magento\Store\Model\ScopeInterface;
 
 class Data extends AbstractHelper
 {
+    /**
+     * @var FilterProvider
+     */
+    private $filterProvider;
+
+    public function __construct(
+        Context $context,
+        FilterProvider $filterProvider
+    ) {
+        parent::__construct($context);
+        $this->filterProvider = $filterProvider;
+    }
+
+    /**
+     * Render rich-text content (FAQ answer / category description).
+     *
+     * Page Builder wraps custom HTML in
+     *   <div data-content-type="html" data-appearance="default" data-element="main">
+     *       &lt;p&gt;...&lt;/p&gt;
+     *   </div>
+     * with the inner HTML entity-encoded. Outputting that raw shows literal
+     * `<p>` tags on the storefront. Magento's CMS page filter chain
+     * (`ContentProcessor` etc.) decodes the wrapper correctly, so we route
+     * every storefront rich-text render through it. Falls back to the raw
+     * value if the filter throws (e.g. on Magento builds without PageBuilder).
+     */
+    public function renderRichText(?string $content): string
+    {
+        $content = (string)$content;
+        if ($content === '') {
+            return '';
+        }
+        try {
+            return (string)$this->filterProvider->getPageFilter()->filter($content);
+        } catch (\Throwable $e) {
+            return $content;
+        }
+    }
     const XML_PATH_ENABLED = 'panth_faq/general/enabled';
     const XML_PATH_FAQ_ROUTE = 'panth_faq/general/faq_route';
     const XML_PATH_META_TITLE = 'panth_faq/general/meta_title';

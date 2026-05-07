@@ -174,7 +174,7 @@ foreach ($categories as $cat) {
                         </h2>
                         <?php if ($showCategoryDesc && $category->getDescription()): ?>
                             <div class="prose max-w-none" style="color: var(--color-fg-secondary, #525252);">
-                                <?= /* @noEscape */ $category->getDescription() ?>
+                                <?= /* @noEscape */ $block->getFaqHelper()->renderRichText($category->getDescription()) ?>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -208,7 +208,7 @@ foreach ($categories as $cat) {
                                     <div x-show="open" x-transition>
                                         <div class="p-4">
                                             <div class="prose max-w-none mb-4" style="color: var(--color-fg-secondary, #525252);">
-                                                <?= /* @noEscape */ $item->getAnswer() ?>
+                                                <?= /* @noEscape */ $block->getFaqHelper()->renderRichText($item->getAnswer()) ?>
                                             </div>
                                             <?php if ($showViewCount || $isHelpfulVotingEnabled): ?>
                                                 <div class="flex items-center justify-between pt-3 mt-3"

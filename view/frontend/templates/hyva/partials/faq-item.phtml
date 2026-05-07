@@ -45,7 +45,7 @@ $formKey = $block->getData('formKey');
          x-transition>
         <div class="p-4">
             <div class="faq-answer prose max-w-none mb-4">
-                <?= /* @noEscape */ $item->getAnswer() ?>
+                <?= /* @noEscape */ $block->getFaqHelper()->renderRichText($item->getAnswer()) ?>
             </div>
 
             <?php if ($showViewCount): ?>

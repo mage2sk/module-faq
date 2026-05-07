@@ -66,7 +66,7 @@ $title = $block->getTitle();
                     </div>
                     <div class="faq-item-content" style="display: none;">
                         <div class="faq-answer">
-                            <?= /* @noEscape */ $item->getAnswer() ?>
+                            <?= /* @noEscape */ $block->getFaqHelper()->renderRichText($item->getAnswer()) ?>
                         </div>
                     </div>
                 </div>
@@ -95,7 +95,7 @@ $title = $block->getTitle();
                             </div>
                             <div class="faq-item-content" style="display: none;">
                                 <div class="faq-answer">
-                                    <?= /* @noEscape */ $item->getAnswer() ?>
+                                    <?= /* @noEscape */ $block->getFaqHelper()->renderRichText($item->getAnswer()) ?>
                                 </div>
                             </div>
                         </div>
