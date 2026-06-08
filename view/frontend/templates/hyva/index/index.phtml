@@ -272,7 +272,7 @@ function faqPage() {
         formKey: '<?= $block->escapeJs($formKey) ?>',
 
         init() {
-            // Handle URL hash — scroll to and open specific FAQ
+            // Handle URL hash - scroll to and open specific FAQ
             if (window.location.hash) {
                 const target = document.querySelector(window.location.hash);
                 if (target) {
