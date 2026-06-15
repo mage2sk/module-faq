@@ -15,6 +15,7 @@ use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Catalog\Model\ImageUploader;
 use Magento\Framework\Controller\ResultFactory;
+use Panth\Core\Security\UploadExtensionPolicy;
 
 class Upload extends Action
 {
@@ -26,15 +27,23 @@ class Upload extends Action
     protected $imageUploader;
 
     /**
+     * @var UploadExtensionPolicy
+     */
+    private $uploadExtensionPolicy;
+
+    /**
      * @param Context $context
      * @param ImageUploader $imageUploader
+     * @param UploadExtensionPolicy $uploadExtensionPolicy
      */
     public function __construct(
         Context $context,
-        ImageUploader $imageUploader
+        ImageUploader $imageUploader,
+        UploadExtensionPolicy $uploadExtensionPolicy
     ) {
         parent::__construct($context);
         $this->imageUploader = $imageUploader;
+        $this->uploadExtensionPolicy = $uploadExtensionPolicy;
     }
 
     /**
@@ -47,6 +56,12 @@ class Upload extends Action
         $imageId = $this->_request->getParam('param_name', 'icon');
 
         try {
+            // Hard executable deny-list — defense-in-depth on top of the
+            // ImageUploader's own allowlist.
+            if (isset($_FILES[$imageId]['name']) && is_string($_FILES[$imageId]['name'])) {
+                $this->uploadExtensionPolicy->assertSafeExtension($_FILES[$imageId]['name']);
+            }
+
             $result = $this->imageUploader->saveFileToTmpDir($imageId);
         } catch (\Exception $e) {
             $result = ['error' => $e->getMessage(), 'errorcode' => $e->getCode()];

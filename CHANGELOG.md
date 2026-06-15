@@ -4,6 +4,15 @@ All notable changes to this extension are documented here. The format
 is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.3] — Upload extension deny-list (defense-in-depth)
+
+### Added
+- `Controller/Adminhtml/Category/Image/Upload` now calls
+  `Panth\Core\Security\UploadExtensionPolicy::assertSafeExtension()` before
+  `saveFileToTmpDir()` — a hard executable deny-list independent of the
+  ImageUploader allowlist. Admin-gated, defense-in-depth. Requires
+  `mage2kishan/module-core ^1.0.17`.
+
 ## [1.0.0] — Initial release
 
 ### Added

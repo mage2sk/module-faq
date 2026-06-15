@@ -2,7 +2,7 @@
     "name": "mage2kishan/module-faq",
     "description": "Advanced FAQ Module with multi-level assignment capabilities",
     "type": "magento2-module",
-    "version": "1.1.2",
+    "version": "1.1.3",
     "license": "proprietary",
     "authors": [
         {
@@ -19,7 +19,7 @@
         "magento/module-store": "^101.0",
         "magento/module-ui": "^101.0",
         "magento/module-url-rewrite": "^102.0",
-        "mage2kishan/module-core": "^1.0"
+        "mage2kishan/module-core": "^1.0.17"
     },
     "autoload": {
         "files": [
