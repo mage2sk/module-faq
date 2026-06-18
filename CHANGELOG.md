@@ -4,7 +4,19 @@ All notable changes to this extension are documented here. The format
 is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [1.1.3] — Upload extension deny-list (defense-in-depth)
+## [1.1.4] - README rewrite
+
+### Changed
+- Rewrote README to match the gold template structure: SEO meta comment, badge
+  row with live product page link, Quick Answer block, hire/agency promo,
+  full configuration table from system.xml, How It Works section, updated FAQ
+  entries, Support table with product page row, and Quick Links table.
+- Canonical and all product page links updated to kishansavaliya.com/magento-2-faq.html.
+- Removed commercemarketplace.adobe.com link; Marketplace text now links to
+  the live product URL.
+- Added per-store-view content override detail (added in 1.1.0) to Key Features.
+
+## [1.1.3] - Upload extension deny-list (defense-in-depth)
 
 ### Added
 - `Controller/Adminhtml/Category/Image/Upload` now calls
