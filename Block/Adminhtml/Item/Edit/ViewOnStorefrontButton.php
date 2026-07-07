@@ -1,14 +1,4 @@
 <?php
-/**
- * "View on Storefront" button for the FAQ Item edit page.
- *
- * Links to the storefront URL for the entity, picking the per-store URL
- * key when the admin has the scope-switcher set to a specific store view
- * (matching what the merchant is actually editing) and falling back to
- * the main row's url_key + the default store's base URL on All Store
- * Views. Replaces the per-row "View" action that previously lived in the
- * grid (which couldn't represent per-store URL keys correctly).
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Block\Adminhtml\Item\Edit;
@@ -68,7 +58,6 @@ class ViewOnStorefrontButton extends GenericButton implements ButtonProviderInte
             return null;
         }
 
-        // Slug: per-store override if it exists, else the main row.
         $slug = null;
         if ($scopeStoreId > 0) {
             $override = $this->itemResource->getStoreOverrideRow($itemId, $scopeStoreId);

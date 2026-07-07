@@ -1,12 +1,4 @@
 <?php
-/**
- * FAQ Item Product Assignment Block
- *
- * @category  Panth
- * @package   Panth_Faq
- * @author    Panth
- * @copyright Copyright (c) 2025 Panth
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Block\Adminhtml\Item\Edit\Tab;
@@ -19,23 +11,10 @@ use Magento\Framework\Registry;
 
 class Product extends Extended
 {
-    /**
-     * @var Registry
-     */
     protected $registry;
 
-    /**
-     * @var CollectionFactory
-     */
     protected $productCollectionFactory;
 
-    /**
-     * @param Context $context
-     * @param BackendHelper $backendHelper
-     * @param CollectionFactory $productCollectionFactory
-     * @param Registry $registry
-     * @param array $data
-     */
     public function __construct(
         Context $context,
         BackendHelper $backendHelper,
@@ -48,11 +27,6 @@ class Product extends Extended
         parent::__construct($context, $backendHelper, $data);
     }
 
-    /**
-     * Initialize grid
-     *
-     * @return void
-     */
     protected function _construct()
     {
         parent::_construct();
@@ -63,21 +37,11 @@ class Product extends Extended
         $this->setSaveParametersInSession(true);
     }
 
-    /**
-     * Get current FAQ item
-     *
-     * @return \Panth\Faq\Model\Item|null
-     */
     public function getItem()
     {
         return $this->registry->registry('panth_faq_item');
     }
 
-    /**
-     * Prepare collection
-     *
-     * @return $this
-     */
     protected function _prepareCollection()
     {
         $collection = $this->productCollectionFactory->create();
@@ -89,17 +53,10 @@ class Product extends Extended
         return parent::_prepareCollection();
     }
 
-    /**
-     * Prepare columns
-     *
-     * @return $this
-     */
     protected function _prepareColumns()
     {
-        // Always ensure values is an array - even if empty
         $values = [];
 
-        // DEBUG: Log the type and value
         $writer = new \Zend_Log_Writer_Stream(BP . '/var/log/faq_grid_debug.log');
         $logger = new \Zend_Log();
         $logger->addWriter($writer);
@@ -116,12 +73,10 @@ class Product extends Extended
                 $logger->info('Product Grid - Values content: ' . print_r($values, true));
             }
         } catch (\Exception $e) {
-            // Fail safe - use empty array
             $logger->error('Product Grid - Exception: ' . $e->getMessage());
             $values = [];
         }
 
-        // Ensure values is definitely an array
         if (!is_array($values)) {
             $logger->error('Product Grid - VALUES IS NOT AN ARRAY! Type: ' . gettype($values) . ' Value: ' . print_r($values, true));
             $values = [];
@@ -184,27 +139,16 @@ class Product extends Extended
         return parent::_prepareColumns();
     }
 
-    /**
-     * Get grid url
-     *
-     * @return string
-     */
     public function getGridUrl()
     {
         return $this->getUrl('faq/item/productsgrid', ['_current' => true]);
     }
 
-    /**
-     * Get selected products
-     *
-     * @return array
-     */
     protected function getSelectedProducts(): array
     {
         try {
             $products = $this->getRequest()->getPost('products');
             if ($products !== null) {
-                // Post data exists, use it
                 if (!is_array($products)) {
                     $products = [];
                 }
@@ -212,19 +156,17 @@ class Product extends Extended
             }
 
             $item = $this->getItem();
-            // Only try to get data if item exists and has an ID
+
             if (!$item || !$item->getId()) {
                 return [];
             }
 
             $products = $item->getData('products');
 
-            // If products is null or empty, return empty array
             if ($products === null || $products === '') {
                 return [];
             }
 
-            // Handle JSON or serialized data
             if (is_string($products)) {
                 $decoded = json_decode($products, true);
                 if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
@@ -237,39 +179,22 @@ class Product extends Extended
                 return [];
             }
 
-            // Ensure we return array of integers only
             return array_filter(array_map('intval', $products));
         } catch (\Exception $e) {
-            // Fail safe - always return array
             return [];
         }
     }
 
-    /**
-     * Can show tab
-     *
-     * @return bool
-     */
     public function canShowTab()
     {
         return true;
     }
 
-    /**
-     * Is hidden
-     *
-     * @return bool
-     */
     public function isHidden()
     {
         return false;
     }
 
-    /**
-     * After HTML
-     *
-     * @return string
-     */
     public function _afterToHtml($html)
     {
         $html = parent::_afterToHtml($html);

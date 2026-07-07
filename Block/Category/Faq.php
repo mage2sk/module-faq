@@ -1,12 +1,4 @@
 <?php
-/**
- * Category FAQ Block
- *
- * @category  Panth
- * @package   Panth_Faq
- * @author    Panth
- * @copyright Copyright (c) 2025 Panth
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Block\Category;
@@ -21,39 +13,16 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class Faq extends Template
 {
-    /**
-     * @var CollectionFactory
-     */
     protected $collectionFactory;
 
-    /**
-     * @var Registry
-     */
     protected $registry;
 
-    /**
-     * @var FaqHelper
-     */
     protected $faqHelper;
 
-    /**
-     * @var StoreManagerInterface
-     */
     protected $storeManager;
 
-    /**
-     * @var \Panth\Faq\Model\ResourceModel\Item\Collection|null
-     */
     protected $faqCollection = null;
 
-    /**
-     * @param Context $context
-     * @param CollectionFactory $collectionFactory
-     * @param Registry $registry
-     * @param FaqHelper $faqHelper
-     * @param StoreManagerInterface $storeManager
-     * @param array $data
-     */
     public function __construct(
         Context $context,
         CollectionFactory $collectionFactory,
@@ -69,21 +38,11 @@ class Faq extends Template
         parent::__construct($context, $data);
     }
 
-    /**
-     * Get current category
-     *
-     * @return Category|null
-     */
     public function getCurrentCategory()
     {
         return $this->registry->registry('current_category');
     }
 
-    /**
-     * Get FAQ items for current category
-     *
-     * @return \Panth\Faq\Model\ResourceModel\Item\Collection
-     */
     public function getFaqItems()
     {
         if ($this->faqCollection === null) {
@@ -110,21 +69,11 @@ class Faq extends Template
         return $this->faqCollection;
     }
 
-    /**
-     * Check if FAQ is enabled for category page
-     *
-     * @return bool
-     */
     public function isEnabled(): bool
     {
         return $this->faqHelper->isCategoryPageEnabled();
     }
 
-    /**
-     * Get FAQ section title
-     *
-     * @return string
-     */
     public function getTitle(): string
     {
         return (string)$this->faqHelper->getConfigValue(
@@ -132,11 +81,6 @@ class Faq extends Template
         ) ?: __('Frequently Asked Questions')->render();
     }
 
-    /**
-     * Get FAQ display limit
-     *
-     * @return int
-     */
     public function getLimit(): int
     {
         $limit = (int)$this->faqHelper->getConfigValue(
@@ -146,43 +90,23 @@ class Faq extends Template
         return $limit > 0 ? $limit : 0;
     }
 
-    /**
-     * Get FAQ list page URL
-     *
-     * @return string
-     */
     public function getFaqListUrl(): string
     {
         $route = $this->faqHelper->getFaqRoute() ?: 'faq';
         return $this->getUrl($route);
     }
 
-    /**
-     * Check if should display the block
-     *
-     * @return bool
-     */
     public function canDisplay(): bool
     {
         return $this->isEnabled() && $this->getFaqItems()->getSize() > 0;
     }
 
-    /**
-     * Check if should show "View All FAQs" link
-     *
-     * @return bool
-     */
     public function shouldShowViewAllLink(): bool
     {
         $limit = $this->getLimit();
         return $limit > 0 && $this->getFaqItems()->getSize() > $limit;
     }
 
-    /**
-     * Get cache key info
-     *
-     * @return array
-     */
     public function getCacheKeyInfo()
     {
         $category = $this->getCurrentCategory();
@@ -197,21 +121,11 @@ class Faq extends Template
         );
     }
 
-    /**
-     * Get cache lifetime
-     *
-     * @return int|null
-     */
     protected function getCacheLifetime()
     {
-        return 86400; // 1 day
+        return 86400;
     }
 
-    /**
-     * Get uncategorized FAQ items (not assigned to any category)
-     *
-     * @return \Panth\Faq\Model\ResourceModel\Item\Collection
-     */
     public function getUncategorizedFaqItems()
     {
         $collection = $this->collectionFactory->create();
@@ -220,7 +134,6 @@ class Faq extends Template
             ->addStoreFilter($this->storeManager->getStore()->getId())
             ->setOrder('sort_order', 'ASC');
 
-        // Filter items that don't have any category assignment
         $collection->getSelect()
             ->joinLeft(
                 ['faq_cat' => $collection->getTable('panth_faq_item_faq_category')],
@@ -230,7 +143,6 @@ class Faq extends Template
             ->where('faq_cat.faq_category_id IS NULL')
             ->group('main_table.item_id');
 
-        // Apply limit if configured
         $limit = $this->getLimit();
         if ($limit > 0) {
             $collection->setPageSize($limit);
@@ -238,16 +150,9 @@ class Faq extends Template
 
         return $collection;
     }
-    /**
-     * Public accessor so storefront templates can call
-     * \$block->getFaqHelper()->renderRichText(...) without resorting to
-     * ObjectManager. Added in 1.1.0.
-     *
-     * @return \Panth\Faq\Helper\Data
-     */
+
     public function getFaqHelper(): \Panth\Faq\Helper\Data
     {
         return $this->faqHelper;
     }
-
 }

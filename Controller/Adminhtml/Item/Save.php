@@ -1,12 +1,4 @@
 <?php
-/**
- * FAQ Item Save Controller
- *
- * @category  Panth
- * @package   Panth_Faq
- * @author    Panth
- * @copyright Copyright (c) 2025 Panth
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Controller\Adminhtml\Item;
@@ -39,10 +31,7 @@ class Save extends Action
 
         if ($data) {
             $id = $this->getRequest()->getParam('item_id');
-            // Scope can come from either the URL ?store= param (set by the
-            // store-switcher button) or from the form's hidden store_scope_id
-            // field. The latter survives even when the form's submitUrl
-            // doesn't carry the URL query string.
+
             $storeScopeId = (int)$this->getRequest()->getParam('store', 0);
             if ($storeScopeId === 0) {
                 $storeScopeId = (int)($data['store_scope_id'] ?? 0);
@@ -54,10 +43,6 @@ class Save extends Action
                     : $this->itemFactory->create();
 
                 if ($storeScopeId > 0) {
-                    // Apply incoming overrides only — do NOT overwrite the
-                    // main row with scoped values. We collect the per-store
-                    // payload and the `use_default` flags, then persist via
-                    // the resource model's saveStoreValues hook.
                     $useDefault = $this->normalizeUseDefault(
                         $data['use_default'] ?? [],
                         ItemResource::SCOPED_FIELDS
@@ -65,7 +50,6 @@ class Save extends Action
                     $scopedPayload = [];
                     foreach (ItemResource::SCOPED_FIELDS as $field) {
                         if (in_array($field, $useDefault, true)) {
-                            // Inherit default — clear any local override.
                             $scopedPayload[$field] = null;
                             continue;
                         }
@@ -79,19 +63,10 @@ class Save extends Action
                     $model->setData('store_scope_id', $storeScopeId);
                     $model->setData('use_default', $useDefault);
                 } else {
-                    // Default scope: write straight to main row, but skip
-                    // store_scope_id / use_default plumbing keys.
                     unset($data['use_default'], $data['store_scope_id']);
                     $model->setData(array_merge($model->getData(), $data));
                 }
 
-                // Backward compat: pre-1.1.0 the form had a "Show on Store
-                // Views" multiselect; we removed it because the store-
-                // switcher above the form now controls scope. If a custom
-                // installation still posts store_id, honour it; otherwise
-                // default a brand-new entity to "all stores" (store_id = 0
-                // = admin/wildcard) so it's visible everywhere by default.
-                // Existing entities are left as-is.
                 if (isset($data['store_id'])) {
                     $model->setStores($data['store_id']);
                 } elseif (!$id) {
@@ -151,15 +126,6 @@ class Save extends Action
         return $resultRedirect->setPath('*/*/');
     }
 
-    /**
-     * Translate the form's `use_default` payload into a flat list of field
-     * names. The form sends either `use_default[<field>] = "1"` (associative)
-     * or a numeric array of field names; both are normalised to a list.
-     *
-     * @param mixed $raw
-     * @param string[] $allowed
-     * @return string[]
-     */
     private function normalizeUseDefault($raw, array $allowed): array
     {
         if (!is_array($raw)) {

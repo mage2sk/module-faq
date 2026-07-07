@@ -1,12 +1,4 @@
 <?php
-/**
- * CMS Page FAQ Block
- *
- * @category  Panth
- * @package   Panth_Faq
- * @author    Panth
- * @copyright Copyright (c) 2025 Panth
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Block\Page;
@@ -21,47 +13,18 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class Faq extends Template
 {
-    /**
-     * @var CollectionFactory
-     */
     protected $collectionFactory;
 
-    /**
-     * @var Page
-     */
     protected $page;
 
-    /**
-     * @var RequestInterface
-     */
     protected $request;
 
-    /**
-     * @var FaqHelper
-     */
     protected $faqHelper;
 
-    /**
-     * @var StoreManagerInterface
-     */
     protected $storeManager;
 
-    /**
-     * @var \Panth\Faq\Model\ResourceModel\Item\Collection|null
-     */
     protected $faqItems = null;
 
-    /**
-     * Constructor
-     *
-     * @param Context $context
-     * @param CollectionFactory $collectionFactory
-     * @param Page $page
-     * @param RequestInterface $request
-     * @param FaqHelper $faqHelper
-     * @param StoreManagerInterface $storeManager
-     * @param array $data
-     */
     public function __construct(
         Context $context,
         CollectionFactory $collectionFactory,
@@ -79,11 +42,6 @@ class Faq extends Template
         parent::__construct($context, $data);
     }
 
-    /**
-     * Get current CMS page
-     *
-     * @return Page|null
-     */
     public function getCurrentPage()
     {
         $pageId = $this->request->getParam('page_id');
@@ -93,11 +51,6 @@ class Faq extends Template
         return $this->page->getId() ? $this->page : null;
     }
 
-    /**
-     * Get FAQ items assigned to current CMS page
-     *
-     * @return \Panth\Faq\Model\ResourceModel\Item\Collection
-     */
     public function getFaqItems()
     {
         if ($this->faqItems === null) {
@@ -121,21 +74,11 @@ class Faq extends Template
         return $this->faqItems;
     }
 
-    /**
-     * Check if FAQ is enabled for CMS pages
-     *
-     * @return bool
-     */
     public function isEnabled(): bool
     {
         return $this->faqHelper->isCmsPageEnabled();
     }
 
-    /**
-     * Get CMS page FAQ title from configuration
-     *
-     * @return string
-     */
     public function getTitle(): string
     {
         return (string)$this->faqHelper->getConfigValue(
@@ -143,22 +86,12 @@ class Faq extends Template
         ) ?: __('Frequently Asked Questions')->render();
     }
 
-    /**
-     * Get FAQ main page URL
-     *
-     * @return string
-     */
     public function getFaqUrl(): string
     {
         $route = $this->faqHelper->getFaqRoute() ?: 'faq';
         return $this->getUrl($route);
     }
 
-    /**
-     * Get uncategorized FAQ items (not assigned to any category)
-     *
-     * @return \Panth\Faq\Model\ResourceModel\Item\Collection
-     */
     public function getUncategorizedFaqItems()
     {
         $collection = $this->collectionFactory->create();
@@ -167,7 +100,6 @@ class Faq extends Template
             ->addStoreFilter($this->storeManager->getStore()->getId())
             ->setOrder('sort_order', 'ASC');
 
-        // Filter items that don't have any category assignment
         $collection->getSelect()
             ->joinLeft(
                 ['faq_cat' => $collection->getTable('panth_faq_item_faq_category')],
@@ -179,16 +111,9 @@ class Faq extends Template
 
         return $collection;
     }
-    /**
-     * Public accessor so storefront templates can call
-     * \$block->getFaqHelper()->renderRichText(...) without resorting to
-     * ObjectManager. Added in 1.1.0.
-     *
-     * @return \Panth\Faq\Helper\Data
-     */
+
     public function getFaqHelper(): \Panth\Faq\Helper\Data
     {
         return $this->faqHelper;
     }
-
 }

@@ -1,12 +1,4 @@
 <?php
-/**
- * Save CMS Page FAQ Assignments
- *
- * @category  Panth
- * @package   Panth_Faq
- * @author    Panth
- * @copyright Copyright (c) 2025 Panth
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Controller\Adminhtml\Page;
@@ -18,21 +10,10 @@ use Magento\Framework\App\ResourceConnection;
 
 class SaveFaq extends Action
 {
-    /**
-     * @var JsonFactory
-     */
     protected $resultJsonFactory;
 
-    /**
-     * @var ResourceConnection
-     */
     protected $resourceConnection;
 
-    /**
-     * @param Context $context
-     * @param JsonFactory $resultJsonFactory
-     * @param ResourceConnection $resourceConnection
-     */
     public function __construct(
         Context $context,
         JsonFactory $resultJsonFactory,
@@ -43,11 +24,6 @@ class SaveFaq extends Action
         $this->resourceConnection = $resourceConnection;
     }
 
-    /**
-     * Execute action
-     *
-     * @return \Magento\Framework\Controller\Result\Json
-     */
     public function execute()
     {
         $result = $this->resultJsonFactory->create();
@@ -66,10 +42,8 @@ class SaveFaq extends Action
             $connection = $this->resourceConnection->getConnection();
             $tableName = $connection->getTableName('panth_faq_item_page');
 
-            // Delete existing assignments
             $connection->delete($tableName, ['page_id = ?' => $pageId]);
 
-            // Insert new assignments
             if (!empty($faqIds)) {
                 $data = [];
                 foreach ($faqIds as $faqId) {
@@ -82,7 +56,6 @@ class SaveFaq extends Action
                 'success' => true,
                 'message' => __('FAQ assignments saved successfully.')
             ]);
-
         } catch (\Exception $e) {
             return $result->setData([
                 'success' => false,
@@ -91,11 +64,6 @@ class SaveFaq extends Action
         }
     }
 
-    /**
-     * Check ACL
-     *
-     * @return bool
-     */
     protected function _isAllowed()
     {
         return $this->_authorization->isAllowed('Panth_Faq::item');

@@ -1,12 +1,4 @@
 <?php
-/**
- * FAQ Item View Block
- *
- * @category  Panth
- * @package   Panth_Faq
- * @author    Panth
- * @copyright Copyright (c) 2025 Panth
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Block\Index;
@@ -24,52 +16,20 @@ use Panth\Faq\Helper\Data as FaqHelper;
 
 class View extends Template
 {
-    /**
-     * @var Registry
-     */
     protected $registry;
 
-    /**
-     * @var ItemRepositoryInterface
-     */
     protected $itemRepository;
 
-    /**
-     * @var CategoryRepositoryInterface
-     */
     protected $categoryRepository;
 
-    /**
-     * @var FaqHelper
-     */
     protected $faqHelper;
 
-    /**
-     * @var ScopeConfigInterface
-     */
     protected $scopeConfig;
 
-    /**
-     * @var StoreManagerInterface
-     */
     protected $storeManager;
 
-    /**
-     * @var ResourceConnection
-     */
     protected $resourceConnection;
 
-    /**
-     * @param Context $context
-     * @param Registry $registry
-     * @param ItemRepositoryInterface $itemRepository
-     * @param CategoryRepositoryInterface $categoryRepository
-     * @param FaqHelper $faqHelper
-     * @param ScopeConfigInterface $scopeConfig
-     * @param StoreManagerInterface $storeManager
-     * @param ResourceConnection $resourceConnection
-     * @param array $data
-     */
     public function __construct(
         Context $context,
         Registry $registry,
@@ -91,11 +51,6 @@ class View extends Template
         parent::__construct($context, $data);
     }
 
-    /**
-     * Get current FAQ item
-     *
-     * @return \Panth\Faq\Api\Data\ItemInterface|null
-     */
     public function getFaqItem()
     {
         $itemId = (int)$this->getRequest()->getParam('id');
@@ -110,14 +65,8 @@ class View extends Template
         }
     }
 
-    /**
-     * Get back URL
-     *
-     * @return string
-     */
     public function getBackUrl()
     {
-        // Get configured FAQ URL key
         $faqUrlKey = $this->scopeConfig->getValue(
             'panth_faq/general/faq_route',
             ScopeInterface::SCOPE_STORE
@@ -129,35 +78,19 @@ class View extends Template
 
         $faqUrlKey = trim($faqUrlKey, '/');
 
-        // Return direct URL using base URL + configured key
         return $this->storeManager->getStore()->getBaseUrl() . $faqUrlKey;
     }
 
-    /**
-     * Check if helpful voting is enabled
-     *
-     * @return bool
-     */
     public function isHelpfulVotingEnabled()
     {
         return (bool)$this->faqHelper->getConfigValue(FaqHelper::XML_PATH_ENABLE_HELPFUL_VOTING);
     }
 
-    /**
-     * Check if view count should be shown
-     *
-     * @return bool
-     */
     public function showViewCount()
     {
         return (bool)$this->faqHelper->getConfigValue(FaqHelper::XML_PATH_SHOW_VIEW_COUNT);
     }
 
-    /**
-     * Get categories for current FAQ item
-     *
-     * @return array
-     */
     public function getFaqCategories()
     {
         $item = $this->getFaqItem();
@@ -195,15 +128,8 @@ class View extends Template
         }
     }
 
-    /**
-     * Get category URL
-     *
-     * @param \Panth\Faq\Api\Data\CategoryInterface $category
-     * @return string
-     */
     public function getCategoryUrl($category)
     {
-        // Get configured FAQ URL key
         $faqUrlKey = $this->scopeConfig->getValue(
             'panth_faq/general/faq_route',
             ScopeInterface::SCOPE_STORE
@@ -222,16 +148,9 @@ class View extends Template
 
         return $baseUrl . $faqUrlKey;
     }
-    /**
-     * Public accessor so storefront templates can call
-     * \$block->getFaqHelper()->renderRichText(...) without resorting to
-     * ObjectManager. Added in 1.1.0.
-     *
-     * @return \Panth\Faq\Helper\Data
-     */
+
     public function getFaqHelper(): \Panth\Faq\Helper\Data
     {
         return $this->faqHelper;
     }
-
 }

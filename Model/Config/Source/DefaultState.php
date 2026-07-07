@@ -1,12 +1,4 @@
 <?php
-/**
- * Default State Source Model
- *
- * @category  Panth
- * @package   Panth_Faq
- * @author    Panth
- * @copyright Copyright (c) 2025 Panth
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Model\Config\Source;
@@ -19,11 +11,6 @@ class DefaultState implements OptionSourceInterface
     const STATE_EXPANDED = 1;
     const STATE_FIRST_EXPANDED = 2;
 
-    /**
-     * Get options
-     *
-     * @return array
-     */
     public function toOptionArray()
     {
         return [

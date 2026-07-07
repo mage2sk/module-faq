@@ -1,12 +1,4 @@
 <?php
-/**
- * Mass Status Change Action
- *
- * @category  Panth
- * @package   Panth_Faq
- * @author    Panth
- * @copyright Copyright (c) 2025 Panth
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Controller\Adminhtml\Item;
@@ -20,24 +12,12 @@ use Panth\Faq\Model\ResourceModel\Item\CollectionFactory;
 
 class MassStatus extends Action
 {
-    /**
-     * Use the existing item save ACL — this action mutates is_active.
-     */
     public const ADMIN_RESOURCE = 'Panth_Faq::item_save';
 
-    /**
-     * @var Filter
-     */
     protected $filter;
 
-    /**
-     * @var CollectionFactory
-     */
     protected $collectionFactory;
 
-    /**
-     * @var ItemRepositoryInterface
-     */
     protected $itemRepository;
 
     public function __construct(
@@ -52,9 +32,6 @@ class MassStatus extends Action
         parent::__construct($context);
     }
 
-    /**
-     * @return \Magento\Backend\Model\View\Result\Redirect
-     */
     public function execute()
     {
         $resultRedirect = $this->resultRedirectFactory->create();
@@ -75,11 +52,6 @@ class MassStatus extends Action
             return $resultRedirect->setPath('*/*/');
         }
 
-        // Reload each item through the repository so we operate on a clean,
-        // fully-hydrated model (collection rows don't trigger _afterLoad and
-        // therefore don't have their store/relation/override data populated;
-        // saving them directly would risk wiping links). The repository call
-        // gives us a model loaded the same way the Edit form would.
         $ok = 0;
         $failed = 0;
         foreach ($collection->getAllIds() as $id) {

@@ -1,12 +1,4 @@
 <?php
-/**
- * FAQ Item Products Grid Controller
- *
- * @category  Panth
- * @package   Panth_Faq
- * @author    Panth
- * @copyright Copyright (c) 2025 Panth
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Controller\Adminhtml\Item;
@@ -19,15 +11,8 @@ class ProductsGrid extends Action
 {
     const ADMIN_RESOURCE = 'Panth_Faq::item_save';
 
-    /**
-     * @var LayoutFactory
-     */
     protected $resultLayoutFactory;
 
-    /**
-     * @param Context $context
-     * @param LayoutFactory $resultLayoutFactory
-     */
     public function __construct(
         Context $context,
         LayoutFactory $resultLayoutFactory
@@ -36,11 +21,6 @@ class ProductsGrid extends Action
         $this->resultLayoutFactory = $resultLayoutFactory;
     }
 
-    /**
-     * Execute action
-     *
-     * @return \Magento\Framework\View\Result\Layout
-     */
     public function execute()
     {
         $resultLayout = $this->resultLayoutFactory->create();

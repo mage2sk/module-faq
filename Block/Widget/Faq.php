@@ -1,12 +1,4 @@
 <?php
-/**
- * FAQ Widget Block
- *
- * @category  Panth
- * @package   Panth_Faq
- * @author    Panth
- * @copyright Copyright (c) 2025 Panth
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Block\Widget;
@@ -20,40 +12,16 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class Faq extends Template implements BlockInterface
 {
-    /**
-     * @var string
-     */
     protected $_template = 'Panth_Faq::widget/faq.phtml';
 
-    /**
-     * @var CollectionFactory
-     */
     protected $collectionFactory;
 
-    /**
-     * @var FaqHelper
-     */
     protected $faqHelper;
 
-    /**
-     * @var StoreManagerInterface
-     */
     protected $storeManager;
 
-    /**
-     * @var \Panth\Faq\Model\ResourceModel\Item\Collection|null
-     */
     protected $faqItems = null;
 
-    /**
-     * Constructor
-     *
-     * @param Context $context
-     * @param CollectionFactory $collectionFactory
-     * @param FaqHelper $faqHelper
-     * @param StoreManagerInterface $storeManager
-     * @param array $data
-     */
     public function __construct(
         Context $context,
         CollectionFactory $collectionFactory,
@@ -67,11 +35,6 @@ class Faq extends Template implements BlockInterface
         parent::__construct($context, $data);
     }
 
-    /**
-     * Get FAQ items based on widget configuration
-     *
-     * @return \Panth\Faq\Model\ResourceModel\Item\Collection
-     */
     public function getFaqItems()
     {
         if ($this->faqItems === null) {
@@ -81,7 +44,6 @@ class Faq extends Template implements BlockInterface
             $collection->addActiveFilter()
                 ->addStoreFilter($storeId);
 
-            // Filter by FAQ items if provided
             $faqItems = $this->getData('faq_items');
             if ($faqItems) {
                 $itemIds = explode(',', $faqItems);
@@ -89,7 +51,7 @@ class Faq extends Template implements BlockInterface
                 $itemIds = array_filter($itemIds);
                 if (!empty($itemIds)) {
                     $collection->addFieldToFilter('main_table.item_id', ['in' => $itemIds]);
-                    // Order by the specified order in the widget config
+
                     $orderList = implode(',', $itemIds);
                     $collection->getSelect()->order(
                         new \Magento\Framework\DB\Sql\Expression("FIELD(main_table.item_id, $orderList)")
@@ -101,7 +63,6 @@ class Faq extends Template implements BlockInterface
                 $collection->setOrder('sort_order', 'ASC');
             }
 
-            // Apply limit if configured
             $limit = $this->getLimit();
             if ($limit > 0) {
                 $collection->setPageSize($limit);
@@ -113,11 +74,6 @@ class Faq extends Template implements BlockInterface
         return $this->faqItems;
     }
 
-    /**
-     * Get widget title
-     *
-     * @return string
-     */
     public function getTitle(): string
     {
         $title = $this->getData('title');
@@ -127,22 +83,12 @@ class Faq extends Template implements BlockInterface
         return __('Frequently Asked Questions')->render();
     }
 
-    /**
-     * Get limit from widget configuration
-     *
-     * @return int
-     */
     public function getLimit(): int
     {
         $limit = (int)$this->getData('limit');
         return $limit > 0 ? $limit : 0;
     }
 
-    /**
-     * Check if widget should be displayed
-     *
-     * @return bool
-     */
     public function shouldDisplay(): bool
     {
         if (!$this->faqHelper->isEnabled()) {
@@ -153,40 +99,23 @@ class Faq extends Template implements BlockInterface
         return $faqItems && $faqItems->getSize() > 0;
     }
 
-    /**
-     * Get FAQ main page URL
-     *
-     * @return string
-     */
     public function getFaqUrl(): string
     {
         $route = $this->faqHelper->getFaqRoute() ?: 'faq';
         return $this->getUrl($route);
     }
 
-    /**
-     * Check if should show "View All FAQs" link
-     *
-     * @return bool
-     */
     public function shouldShowViewAllLink(): bool
     {
         $showViewAll = $this->getData('show_view_all');
         if ($showViewAll === null || $showViewAll === '') {
-            return true; // Default to showing the link
+            return true;
         }
         return (bool)$showViewAll;
     }
-    /**
-     * Public accessor so storefront templates can call
-     * \$block->getFaqHelper()->renderRichText(...) without resorting to
-     * ObjectManager. Added in 1.1.0.
-     *
-     * @return \Panth\Faq\Helper\Data
-     */
+
     public function getFaqHelper(): \Panth\Faq\Helper\Data
     {
         return $this->faqHelper;
     }
-
 }

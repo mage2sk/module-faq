@@ -8,15 +8,6 @@ use Magento\Framework\View\Element\UiComponent\ContextInterface;
 use Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Ui\Component\Listing\Columns\Column;
 
-/**
- * FAQ Item grid action column.
- *
- * The "View" action was removed in 1.1.0 — with per-store URL keys it's
- * impossible to pick the right storefront link from the admin grid in
- * a way that matches what the merchant currently has selected. The View
- * link now lives on the entity edit page header, where it can use the
- * scope dropdown's selected store to pick the correct URL.
- */
 class ItemActions extends Column
 {
     public const URL_PATH_EDIT = 'faq/item/edit';

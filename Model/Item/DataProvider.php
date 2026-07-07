@@ -12,24 +12,6 @@ use Panth\Faq\Logger\Logger;
 use Panth\Faq\Model\ResourceModel\Item as ItemResource;
 use Panth\Faq\Model\ResourceModel\Item\CollectionFactory;
 
-/**
- * FAQ item edit-form DataProvider — store-scope aware.
- *
- * When the admin opens the form with `?store=<id>` (the standard Magento
- * store-switcher querystring):
- *   - The model is reloaded through ItemRepository with `store_scope_id`
- *     set, so the resource model overlays per-store override values and
- *     populates the `use_default` array.
- *   - getMeta() injects `service.template = ui/form/element/helper/service`
- *     into every scoped field's metadata. That triggers Magento's stock
- *     "Use Default Value" inline checkbox (same one Catalog uses for
- *     scoped product attributes), which auto-binds the field's disabled
- *     state via Knockout's `isUseDefault` and submits
- *     `use_default[<field>] = 1` on form post.
- *
- * In default scope (no ?store= or store=0), the form behaves exactly as
- * pre-1.1.0 — no service template, no checkboxes, plain admin form.
- */
 class DataProvider extends AbstractDataProvider
 {
     protected $dataPersistor;
@@ -61,16 +43,6 @@ class DataProvider extends AbstractDataProvider
         parent::__construct($name, $primaryFieldName, $requestFieldName, $meta, $data);
     }
 
-    /**
-     * Map each scoped field to the fieldset name it lives in inside the
-     * XML ui_component. The DataProvider's parent::getMeta() does NOT
-     * include the XML's static field tree, so we have to rebuild that
-     * shape here for the Magento UI form merger to overlay our added
-     * `service.template` + `imports.isUseDefault` config onto the right
-     * field at render time.
-     *
-     * Keep in sync with view/adminhtml/ui_component/faq_item_form.xml.
-     */
     private const SCOPED_FIELD_FIELDSETS = [
         'is_active'        => 'general',
         'question'         => 'general',
@@ -149,9 +121,6 @@ class DataProvider extends AbstractDataProvider
         return (int)$this->request->getParam('store', 0);
     }
 
-    /**
-     * @return int[]
-     */
     protected function getFaqCategoryIds(int $itemId): array
     {
         $connection = $this->resourceConnection->getConnection();

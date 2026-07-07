@@ -1,12 +1,4 @@
 <?php
-/**
- * FAQ Category Resource Model
- *
- * @category  Panth
- * @package   Panth_Faq
- * @author    Panth
- * @copyright Copyright (c) 2025 Panth
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Model\ResourceModel;
@@ -21,17 +13,9 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class Category extends AbstractDb
 {
-    /**
-     * Store table name
-     */
     const CATEGORY_STORE_TABLE = 'panth_faq_category_store';
     const CATEGORY_VALUE_TABLE = 'panth_faq_category_value';
 
-    /**
-     * Columns whose values can be overridden per store view.
-     *
-     * @var string[]
-     */
     public const SCOPED_FIELDS = [
         'name',
         'url_key',
@@ -43,19 +27,10 @@ class Category extends AbstractDb
         'meta_keywords',
     ];
 
-    /**
-     * @var StoreManagerInterface
-     */
     protected $storeManager;
 
-    /**
-     * @var EventManager
-     */
     protected $eventManager;
 
-    /**
-     * @var AppState
-     */
     protected $appState;
 
     public function __construct(
@@ -71,9 +46,6 @@ class Category extends AbstractDb
         $this->appState = $appState;
     }
 
-    /**
-     * See Item::resolveStoreScopeId().
-     */
     protected function resolveStoreScopeId(AbstractModel $object): int
     {
         $explicit = (int)$object->getData('store_scope_id');
@@ -98,21 +70,11 @@ class Category extends AbstractDb
         return 0;
     }
 
-    /**
-     * Initialize resource model
-     *
-     * @return void
-     */
     protected function _construct()
     {
         $this->_init('panth_faq_category', 'category_id');
     }
 
-    /**
-     * See Item::load() — preserve store_scope_id across the parent load so
-     * the per-store merge has something to look at after AbstractDb::load
-     * replaces the model's data with the fetched row.
-     */
     public function load(AbstractModel $object, $value, $field = null)
     {
         $scope = $this->resolveStoreScopeId($object);
@@ -124,15 +86,6 @@ class Category extends AbstractDb
         return $result;
     }
 
-    /**
-     * Save store relation
-     *
-     * @param AbstractModel $object
-     * @return $this
-     */
-    /**
-     * See Item::_beforeSave() — same store-scope-safe save pattern.
-     */
     protected function _beforeSave(AbstractModel $object)
     {
         $storeScopeId = (int)$object->getData('store_scope_id');
@@ -168,17 +121,11 @@ class Category extends AbstractDb
         return parent::_afterSave($object);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
     public function loadDefaultValuesPublic(int $categoryId): array
     {
         return $this->loadDefaultValues($categoryId);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
     protected function loadDefaultValues(int $categoryId): array
     {
         if ($categoryId <= 0) {
@@ -192,13 +139,6 @@ class Category extends AbstractDb
         return (array)($connection->fetchRow($select) ?: []);
     }
 
-    /**
-     * Persist per-store overrides — see Item::saveStoreValues() for the
-     * design rationale; this is the category-side mirror.
-     *
-     * @param AbstractModel $object
-     * @return $this
-     */
     protected function saveStoreValues(AbstractModel $object): self
     {
         $storeId = (int)$object->getData('store_scope_id');
@@ -240,11 +180,6 @@ class Category extends AbstractDb
         return $this;
     }
 
-    /**
-     * Read every scoped column verbatim (NULL kept) for a (category, store).
-     *
-     * @return array<string, mixed>
-     */
     public function getStoreOverrideRow(int $categoryId, int $storeId): array
     {
         if ($categoryId <= 0 || $storeId <= 0) {
@@ -259,9 +194,6 @@ class Category extends AbstractDb
         return (array)($connection->fetchRow($select) ?: []);
     }
 
-    /**
-     * Resolve category id for a given URL key, store-aware.
-     */
     public function getCategoryIdByUrlKeyForStore(string $urlKey, int $storeId): ?int
     {
         if ($urlKey === '') {
@@ -301,12 +233,6 @@ class Category extends AbstractDb
         return $id ? (int)$id : null;
     }
 
-    /**
-     * Save store relation
-     *
-     * @param AbstractModel $object
-     * @return $this
-     */
     protected function saveStoreRelation(AbstractModel $object)
     {
         $stores = $object->getStores();
@@ -332,12 +258,6 @@ class Category extends AbstractDb
         return $this;
     }
 
-    /**
-     * Load store relation
-     *
-     * @param AbstractModel $object
-     * @return $this
-     */
     protected function _afterLoad(AbstractModel $object)
     {
         $this->loadStoreRelation($object);
@@ -345,13 +265,6 @@ class Category extends AbstractDb
         return parent::_afterLoad($object);
     }
 
-    /**
-     * Merge per-store overrides onto a loaded category — see
-     * Item::mergeStoreOverrides() for design notes.
-     *
-     * @param AbstractModel $object
-     * @return $this
-     */
     protected function mergeStoreOverrides(AbstractModel $object): self
     {
         $storeId = (int)$object->getData('store_scope_id');
@@ -383,12 +296,6 @@ class Category extends AbstractDb
         return $this;
     }
 
-    /**
-     * Load store relation
-     *
-     * @param AbstractModel $object
-     * @return $this
-     */
     protected function loadStoreRelation(AbstractModel $object)
     {
         $connection = $this->getConnection();

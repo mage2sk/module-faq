@@ -1,12 +1,4 @@
 <?php
-/**
- * FAQ Helper Data
- *
- * @category  Panth
- * @package   Panth_Faq
- * @author    Panth
- * @copyright Copyright (c) 2025 Panth
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Helper;
@@ -18,9 +10,6 @@ use Magento\Store\Model\ScopeInterface;
 
 class Data extends AbstractHelper
 {
-    /**
-     * @var FilterProvider
-     */
     private $filterProvider;
 
     public function __construct(
@@ -31,19 +20,6 @@ class Data extends AbstractHelper
         $this->filterProvider = $filterProvider;
     }
 
-    /**
-     * Render rich-text content (FAQ answer / category description).
-     *
-     * Page Builder wraps custom HTML in
-     *   <div data-content-type="html" data-appearance="default" data-element="main">
-     *       &lt;p&gt;...&lt;/p&gt;
-     *   </div>
-     * with the inner HTML entity-encoded. Outputting that raw shows literal
-     * `<p>` tags on the storefront. Magento's CMS page filter chain
-     * (`ContentProcessor` etc.) decodes the wrapper correctly, so we route
-     * every storefront rich-text render through it. Falls back to the raw
-     * value if the filter throws (e.g. on Magento builds without PageBuilder).
-     */
     public function renderRichText(?string $content): string
     {
         $content = (string)$content;
@@ -86,12 +62,6 @@ class Data extends AbstractHelper
     const XML_PATH_ENABLE_SCHEMA = 'panth_faq/seo/enable_schema';
     const XML_PATH_CANONICAL_URL = 'panth_faq/seo/canonical_url';
 
-    /**
-     * Check if module is enabled
-     *
-     * @param int|null $storeId
-     * @return bool
-     */
     public function isEnabled($storeId = null): bool
     {
         return $this->scopeConfig->isSetFlag(
@@ -101,12 +71,6 @@ class Data extends AbstractHelper
         );
     }
 
-    /**
-     * Get FAQ route
-     *
-     * @param int|null $storeId
-     * @return string
-     */
     public function getFaqRoute($storeId = null): string
     {
         return (string)$this->scopeConfig->getValue(
@@ -116,13 +80,6 @@ class Data extends AbstractHelper
         );
     }
 
-    /**
-     * Get config value
-     *
-     * @param string $path
-     * @param int|null $storeId
-     * @return mixed
-     */
     public function getConfigValue(string $path, $storeId = null)
     {
         return $this->scopeConfig->getValue(
@@ -132,12 +89,6 @@ class Data extends AbstractHelper
         );
     }
 
-    /**
-     * Check if product page FAQ is enabled
-     *
-     * @param int|null $storeId
-     * @return bool
-     */
     public function isProductPageEnabled($storeId = null): bool
     {
         return $this->isEnabled($storeId) && $this->scopeConfig->isSetFlag(
@@ -147,12 +98,6 @@ class Data extends AbstractHelper
         );
     }
 
-    /**
-     * Check if category page FAQ is enabled
-     *
-     * @param int|null $storeId
-     * @return bool
-     */
     public function isCategoryPageEnabled($storeId = null): bool
     {
         return $this->isEnabled($storeId) && $this->scopeConfig->isSetFlag(
@@ -162,12 +107,6 @@ class Data extends AbstractHelper
         );
     }
 
-    /**
-     * Check if CMS page FAQ is enabled
-     *
-     * @param int|null $storeId
-     * @return bool
-     */
     public function isCmsPageEnabled($storeId = null): bool
     {
         return $this->isEnabled($storeId) && $this->scopeConfig->isSetFlag(
@@ -177,12 +116,6 @@ class Data extends AbstractHelper
         );
     }
 
-    /**
-     * Check if FAQ schema is enabled
-     *
-     * @param int|null $storeId
-     * @return bool
-     */
     public function isSchemaEnabled($storeId = null): bool
     {
         return $this->scopeConfig->isSetFlag(

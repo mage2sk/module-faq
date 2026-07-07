@@ -1,12 +1,4 @@
 <?php
-/**
- * CMS Page FAQ List Block
- *
- * @category  Panth
- * @package   Panth_Faq
- * @author    Panth
- * @copyright Copyright (c) 2025 Panth
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Block\Adminhtml\Page\Edit\Tab;
@@ -19,33 +11,14 @@ use Magento\Framework\App\ResourceConnection;
 
 class FaqList extends Template
 {
-    /**
-     * @var string
-     */
     protected $_template = 'Panth_Faq::page/faq_assignment.phtml';
 
-    /**
-     * @var Registry
-     */
     protected $registry;
 
-    /**
-     * @var CollectionFactory
-     */
     protected $faqCollectionFactory;
 
-    /**
-     * @var ResourceConnection
-     */
     protected $resourceConnection;
 
-    /**
-     * @param Context $context
-     * @param Registry $registry
-     * @param CollectionFactory $faqCollectionFactory
-     * @param ResourceConnection $resourceConnection
-     * @param array $data
-     */
     public function __construct(
         Context $context,
         Registry $registry,
@@ -59,21 +32,11 @@ class FaqList extends Template
         parent::__construct($context, $data);
     }
 
-    /**
-     * Get current page
-     *
-     * @return \Magento\Cms\Model\Page|null
-     */
     public function getPage()
     {
         return $this->registry->registry('cms_page');
     }
 
-    /**
-     * Get FAQ items
-     *
-     * @return \Panth\Faq\Model\Item[]
-     */
     public function getFaqItems()
     {
         $collection = $this->faqCollectionFactory->create();
@@ -84,11 +47,6 @@ class FaqList extends Template
         return $collection->getItems();
     }
 
-    /**
-     * Get selected FAQ IDs
-     *
-     * @return array
-     */
     public function getSelectedFaqIds(): array
     {
         $page = $this->getPage();

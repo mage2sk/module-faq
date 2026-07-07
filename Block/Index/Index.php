@@ -1,12 +1,4 @@
 <?php
-/**
- * FAQ List Block
- *
- * @category  Panth
- * @package   Panth_Faq
- * @author    Panth
- * @copyright Copyright (c) 2025 Panth
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Block\Index;
@@ -22,45 +14,18 @@ use Panth\Faq\Helper\Data as FaqHelper;
 
 class Index extends Template
 {
-    /**
-     * @var CategoryCollectionFactory
-     */
     protected $categoryCollectionFactory;
 
-    /**
-     * @var ItemCollectionFactory
-     */
     protected $itemCollectionFactory;
 
-    /**
-     * @var FaqHelper
-     */
     protected $faqHelper;
 
-    /**
-     * @var StoreManagerInterface
-     */
     protected $storeManager;
 
-    /**
-     * @var ScopeConfigInterface
-     */
     protected $scopeConfig;
 
-    /**
-     * @var \Panth\Faq\Model\ResourceModel\Category\Collection|null
-     */
     protected $categoryCollection;
 
-    /**
-     * @param Context $context
-     * @param CategoryCollectionFactory $categoryCollectionFactory
-     * @param ItemCollectionFactory $itemCollectionFactory
-     * @param FaqHelper $faqHelper
-     * @param StoreManagerInterface $storeManager
-     * @param ScopeConfigInterface $scopeConfig
-     * @param array $data
-     */
     public function __construct(
         Context $context,
         CategoryCollectionFactory $categoryCollectionFactory,
@@ -78,11 +43,6 @@ class Index extends Template
         parent::__construct($context, $data);
     }
 
-    /**
-     * Get all active FAQ categories
-     *
-     * @return \Panth\Faq\Model\ResourceModel\Category\Collection
-     */
     public function getFaqCategories()
     {
         if ($this->categoryCollection === null) {
@@ -96,12 +56,6 @@ class Index extends Template
         return $this->categoryCollection;
     }
 
-    /**
-     * Get FAQ items by category
-     *
-     * @param int $categoryId
-     * @return \Panth\Faq\Model\ResourceModel\Item\Collection
-     */
     public function getFaqItemsByCategory($categoryId)
     {
         $collection = $this->itemCollectionFactory->create();
@@ -114,11 +68,6 @@ class Index extends Template
         return $collection;
     }
 
-    /**
-     * Get all FAQ items
-     *
-     * @return \Panth\Faq\Model\ResourceModel\Item\Collection
-     */
     public function getAllFaqItems()
     {
         $collection = $this->itemCollectionFactory->create();
@@ -130,32 +79,16 @@ class Index extends Template
         return $collection;
     }
 
-    /**
-     * Get search query from request
-     *
-     * @return string
-     */
     public function getSearchQuery()
     {
         return (string)$this->getRequest()->getParam('q', '');
     }
 
-    /**
-     * Get selected category from request
-     *
-     * @return int
-     */
     public function getSelectedCategory()
     {
         return (int)$this->getRequest()->getParam('category', 0);
     }
 
-    /**
-     * Search FAQs
-     *
-     * @param string $query
-     * @return \Panth\Faq\Model\ResourceModel\Item\Collection
-     */
     public function search($query)
     {
         $collection = $this->itemCollectionFactory->create();
@@ -174,106 +107,53 @@ class Index extends Template
         return $collection;
     }
 
-    /**
-     * Get FAQ item URL
-     *
-     * @param \Panth\Faq\Model\Item $item
-     * @return string
-     */
     public function getFaqItemUrl($item)
     {
         return $this->getUrl('faq/index/view', ['id' => $item->getId()]);
     }
 
-    /**
-     * Get FAQ category URL
-     *
-     * @param \Panth\Faq\Model\Category $category
-     * @return string
-     */
     public function getFaqCategoryUrl($category)
     {
         return $this->getUrl('faq/category/view', ['id' => $category->getId()]);
     }
 
-    /**
-     * Check if search is enabled
-     *
-     * @return bool
-     */
     public function isSearchEnabled()
     {
         return (bool)$this->faqHelper->getConfigValue(FaqHelper::XML_PATH_SHOW_SEARCH);
     }
 
-    /**
-     * Check if category filter is enabled
-     *
-     * @return bool
-     */
     public function isCategoryFilterEnabled()
     {
         return (bool)$this->faqHelper->getConfigValue(FaqHelper::XML_PATH_SHOW_CATEGORY_FILTER);
     }
 
-    /**
-     * Check if category description should be shown
-     *
-     * @return bool
-     */
     public function showCategoryDescription()
     {
         return (bool)$this->faqHelper->getConfigValue(FaqHelper::XML_PATH_SHOW_CATEGORY_DESC);
     }
 
-    /**
-     * Check if view count should be shown
-     *
-     * @return bool
-     */
     public function showViewCount()
     {
         return (bool)$this->faqHelper->getConfigValue(FaqHelper::XML_PATH_SHOW_VIEW_COUNT);
     }
 
-    /**
-     * Check if helpful voting is enabled
-     *
-     * @return bool
-     */
     public function isHelpfulVotingEnabled()
     {
         return (bool)$this->faqHelper->getConfigValue(FaqHelper::XML_PATH_ENABLE_HELPFUL_VOTING);
     }
 
-    /**
-     * Get items per page
-     *
-     * @return int
-     */
     public function getItemsPerPage()
     {
         return (int)$this->faqHelper->getConfigValue(FaqHelper::XML_PATH_ITEMS_PER_PAGE) ?: 20;
     }
 
-    /**
-     * Check if FAQs should be open by default
-     *
-     * @return bool
-     */
     public function isDefaultOpen()
     {
         return (bool)$this->faqHelper->getConfigValue(FaqHelper::XML_PATH_DEFAULT_OPEN_FAQS);
     }
 
-    /**
-     * Get FAQ main page URL
-     *
-     * @return string
-     */
     public function getFaqMainUrl()
     {
-        // Get configured FAQ URL key
         $faqUrlKey = $this->scopeConfig->getValue(
             'panth_faq/general/faq_route',
             ScopeInterface::SCOPE_STORE
@@ -288,11 +168,6 @@ class Index extends Template
         return $this->storeManager->getStore()->getBaseUrl() . $faqUrlKey;
     }
 
-    /**
-     * Get uncategorized FAQ items (not assigned to any category)
-     *
-     * @return \Panth\Faq\Model\ResourceModel\Item\Collection
-     */
     public function getUncategorizedFaqItems()
     {
         $collection = $this->itemCollectionFactory->create();
@@ -301,7 +176,6 @@ class Index extends Template
             ->addStoreFilter($this->storeManager->getStore()->getId())
             ->setOrder('sort_order', 'ASC');
 
-        // Filter items that don't have any category assignment
         $collection->getSelect()
             ->joinLeft(
                 ['faq_cat' => $collection->getTable('panth_faq_item_faq_category')],
@@ -313,16 +187,9 @@ class Index extends Template
 
         return $collection;
     }
-    /**
-     * Public accessor so storefront templates can call
-     * \$block->getFaqHelper()->renderRichText(...) without resorting to
-     * ObjectManager. Added in 1.1.0.
-     *
-     * @return \Panth\Faq\Helper\Data
-     */
+
     public function getFaqHelper(): \Panth\Faq\Helper\Data
     {
         return $this->faqHelper;
     }
-
 }

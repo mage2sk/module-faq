@@ -1,8 +1,4 @@
 <?php
-/**
- * Copyright © Panth Infotech. All rights reserved.
- * FAQ Vote Submit Controller — handles helpful/not-helpful voting
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Controller\Vote;
@@ -38,9 +34,6 @@ class Submit implements HttpPostActionInterface, CsrfAwareActionInterface
         $this->logger = $logger;
     }
 
-    /**
-     * Skip CSRF validation for AJAX vote requests
-     */
     public function createCsrfValidationException(RequestInterface $request): ?InvalidRequestException
     {
         return null;
@@ -56,7 +49,6 @@ class Submit implements HttpPostActionInterface, CsrfAwareActionInterface
         $result = $this->resultJsonFactory->create();
 
         try {
-            // Accept both JSON body and FormData
             $itemId = 0;
             $vote = '';
 
@@ -64,11 +56,9 @@ class Submit implements HttpPostActionInterface, CsrfAwareActionInterface
             $jsonData = $body ? json_decode($body, true) : null;
 
             if (is_array($jsonData)) {
-                // JSON body
                 $itemId = (int)($jsonData['item_id'] ?? 0);
                 $vote = $jsonData['vote'] ?? '';
             } else {
-                // FormData / POST params
                 $itemId = (int)$this->request->getParam('item_id', 0);
                 $vote = (string)$this->request->getParam('vote', '');
             }
@@ -81,7 +71,6 @@ class Submit implements HttpPostActionInterface, CsrfAwareActionInterface
                 return $result->setData(['success' => false, 'message' => __('Vote must be "yes" or "no".')]);
             }
 
-            // Load FAQ item
             $item = $this->itemFactory->create();
             $this->itemResource->load($item, $itemId);
 
@@ -89,7 +78,6 @@ class Submit implements HttpPostActionInterface, CsrfAwareActionInterface
                 return $result->setData(['success' => false, 'message' => __('FAQ item not found.')]);
             }
 
-            // Increment counter via direct SQL (avoids full model save side effects)
             $column = $vote === 'yes' ? 'helpful_count' : 'not_helpful_count';
             $connection = $this->itemResource->getConnection();
             $connection->update(
@@ -98,7 +86,6 @@ class Submit implements HttpPostActionInterface, CsrfAwareActionInterface
                 ['item_id = ?' => $itemId]
             );
 
-            // Reload to get updated counts
             $this->itemResource->load($item, $itemId);
 
             return $result->setData([

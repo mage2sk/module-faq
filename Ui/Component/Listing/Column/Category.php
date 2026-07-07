@@ -1,12 +1,4 @@
 <?php
-/**
- * FAQ Category Column Renderer
- *
- * @category  Panth
- * @package   Panth_Faq
- * @author    Panth
- * @copyright Copyright (c) 2025 Panth
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Ui\Component\Listing\Column;
@@ -18,23 +10,10 @@ use Panth\Faq\Model\ResourceModel\Category\CollectionFactory as CategoryCollecti
 
 class Category extends Column
 {
-    /**
-     * @var CategoryCollectionFactory
-     */
     protected $categoryCollectionFactory;
 
-    /**
-     * @var array
-     */
     protected $categoryNames = [];
 
-    /**
-     * @param ContextInterface $context
-     * @param UiComponentFactory $uiComponentFactory
-     * @param CategoryCollectionFactory $categoryCollectionFactory
-     * @param array $components
-     * @param array $data
-     */
     public function __construct(
         ContextInterface $context,
         UiComponentFactory $uiComponentFactory,
@@ -46,12 +25,6 @@ class Category extends Column
         parent::__construct($context, $uiComponentFactory, $components, $data);
     }
 
-    /**
-     * Prepare Data Source
-     *
-     * @param array $dataSource
-     * @return array
-     */
     public function prepareDataSource(array $dataSource)
     {
         if (isset($dataSource['data']['items'])) {
@@ -61,7 +34,6 @@ class Category extends Column
                 if (isset($item['category_id'])) {
                     $categoryIds = $item['category_id'];
 
-                    // Handle comma-separated IDs
                     if (is_string($categoryIds)) {
                         $categoryIds = explode(',', $categoryIds);
                     } elseif (!is_array($categoryIds)) {
@@ -102,11 +74,6 @@ class Category extends Column
         return $dataSource;
     }
 
-    /**
-     * Load category names
-     *
-     * @return void
-     */
     protected function loadCategoryNames()
     {
         if (empty($this->categoryNames)) {
@@ -117,12 +84,6 @@ class Category extends Column
         }
     }
 
-    /**
-     * Escape HTML
-     *
-     * @param string $string
-     * @return string
-     */
     protected function escapeHtml($string)
     {
         return htmlspecialchars($string, ENT_QUOTES, 'UTF-8');

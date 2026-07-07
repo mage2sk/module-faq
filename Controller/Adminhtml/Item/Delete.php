@@ -1,12 +1,4 @@
 <?php
-/**
- * FAQ Item Delete Controller
- *
- * @category  Panth
- * @package   Panth_Faq
- * @author    Panth
- * @copyright Copyright (c) 2025 Panth
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Controller\Adminhtml\Item;
@@ -19,15 +11,8 @@ class Delete extends Action
 {
     const ADMIN_RESOURCE = 'Panth_Faq::item_delete';
 
-    /**
-     * @var ItemRepositoryInterface
-     */
     protected $itemRepository;
 
-    /**
-     * @param Context $context
-     * @param ItemRepositoryInterface $itemRepository
-     */
     public function __construct(
         Context $context,
         ItemRepositoryInterface $itemRepository
@@ -36,11 +21,6 @@ class Delete extends Action
         $this->itemRepository = $itemRepository;
     }
 
-    /**
-     * Execute action
-     *
-     * @return \Magento\Framework\Controller\Result\Redirect
-     */
     public function execute()
     {
         $resultRedirect = $this->resultRedirectFactory->create();

@@ -1,12 +1,4 @@
 <?php
-/**
- * FAQ Item Repository
- *
- * @category  Panth
- * @package   Panth_Faq
- * @author    Panth
- * @copyright Copyright (c) 2025 Panth
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Model;
@@ -24,38 +16,16 @@ use Panth\Faq\Api\Data\ItemSearchResultsInterfaceFactory;
 
 class ItemRepository implements ItemRepositoryInterface
 {
-    /**
-     * @var ItemResource
-     */
     protected $resource;
 
-    /**
-     * @var ItemFactory
-     */
     protected $itemFactory;
 
-    /**
-     * @var CollectionFactory
-     */
     protected $collectionFactory;
 
-    /**
-     * @var ItemSearchResultsInterfaceFactory
-     */
     protected $searchResultsFactory;
 
-    /**
-     * @var CollectionProcessorInterface
-     */
     protected $collectionProcessor;
 
-    /**
-     * @param ItemResource $resource
-     * @param ItemFactory $itemFactory
-     * @param CollectionFactory $collectionFactory
-     * @param ItemSearchResultsInterfaceFactory $searchResultsFactory
-     * @param CollectionProcessorInterface $collectionProcessor
-     */
     public function __construct(
         ItemResource $resource,
         ItemFactory $itemFactory,
@@ -70,13 +40,6 @@ class ItemRepository implements ItemRepositoryInterface
         $this->collectionProcessor = $collectionProcessor;
     }
 
-    /**
-     * Save item
-     *
-     * @param ItemInterface $item
-     * @return ItemInterface
-     * @throws CouldNotSaveException
-     */
     public function save(ItemInterface $item)
     {
         try {
@@ -87,13 +50,6 @@ class ItemRepository implements ItemRepositoryInterface
         return $item;
     }
 
-    /**
-     * Retrieve item by ID
-     *
-     * @param int $itemId
-     * @return ItemInterface
-     * @throws NoSuchEntityException
-     */
     public function getById($itemId)
     {
         $item = $this->itemFactory->create();
@@ -104,12 +60,6 @@ class ItemRepository implements ItemRepositoryInterface
         return $item;
     }
 
-    /**
-     * Retrieve items matching the specified criteria
-     *
-     * @param SearchCriteriaInterface $searchCriteria
-     * @return \Panth\Faq\Api\Data\ItemSearchResultsInterface
-     */
     public function getList(SearchCriteriaInterface $searchCriteria)
     {
         $collection = $this->collectionFactory->create();
@@ -123,13 +73,6 @@ class ItemRepository implements ItemRepositoryInterface
         return $searchResults;
     }
 
-    /**
-     * Delete item
-     *
-     * @param ItemInterface $item
-     * @return bool
-     * @throws CouldNotDeleteException
-     */
     public function delete(ItemInterface $item)
     {
         try {
@@ -140,14 +83,6 @@ class ItemRepository implements ItemRepositoryInterface
         return true;
     }
 
-    /**
-     * Delete item by ID
-     *
-     * @param int $itemId
-     * @return bool
-     * @throws NoSuchEntityException
-     * @throws CouldNotDeleteException
-     */
     public function deleteById($itemId)
     {
         return $this->delete($this->getById($itemId));

@@ -1,12 +1,4 @@
 <?php
-/**
- * FAQ AJAX Search Controller
- *
- * @category  Panth
- * @package   Panth_Faq
- * @author    Panth
- * @copyright Copyright (c) 2025 Panth
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Controller\Ajax;
@@ -19,32 +11,14 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class Search implements HttpPostActionInterface
 {
-    /**
-     * @var RequestInterface
-     */
     protected $request;
 
-    /**
-     * @var JsonFactory
-     */
     protected $resultJsonFactory;
 
-    /**
-     * @var CollectionFactory
-     */
     protected $itemCollectionFactory;
 
-    /**
-     * @var StoreManagerInterface
-     */
     protected $storeManager;
 
-    /**
-     * @param RequestInterface $request
-     * @param JsonFactory $resultJsonFactory
-     * @param CollectionFactory $itemCollectionFactory
-     * @param StoreManagerInterface $storeManager
-     */
     public function __construct(
         RequestInterface $request,
         JsonFactory $resultJsonFactory,
@@ -57,11 +31,6 @@ class Search implements HttpPostActionInterface
         $this->storeManager = $storeManager;
     }
 
-    /**
-     * Execute AJAX search
-     *
-     * @return \Magento\Framework\Controller\Result\Json
-     */
     public function execute()
     {
         $result = $this->resultJsonFactory->create();
@@ -81,11 +50,9 @@ class Search implements HttpPostActionInterface
             $collection = $this->itemCollectionFactory->create();
             $collection->addFieldToFilter('is_active', 1);
 
-            // Add store filter
             $storeId = $this->storeManager->getStore()->getId();
             $collection->addStoreFilter($storeId);
 
-            // Search in question and answer
             $collection->addFieldToFilter(
                 ['question', 'answer'],
                 [
@@ -94,7 +61,6 @@ class Search implements HttpPostActionInterface
                 ]
             );
 
-            // Filter by category if specified
             if ($categoryId > 0) {
                 $collection->getSelect()->join(
                     ['faq_cat' => $collection->getTable('panth_faq_item_faq_category')],
@@ -104,7 +70,7 @@ class Search implements HttpPostActionInterface
             }
 
             $collection->setOrder('sort_order', 'ASC');
-            $collection->setPageSize(50); // Limit results
+            $collection->setPageSize(50);
 
             $items = [];
             foreach ($collection as $item) {
@@ -125,7 +91,6 @@ class Search implements HttpPostActionInterface
                 'count' => count($items),
                 'results' => $items
             ]);
-
         } catch (\Exception $e) {
             return $result->setData([
                 'success' => false,

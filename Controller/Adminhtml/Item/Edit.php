@@ -1,12 +1,4 @@
 <?php
-/**
- * FAQ Item Edit Controller
- *
- * @category  Panth
- * @package   Panth_Faq
- * @author    Panth
- * @copyright Copyright (c) 2025 Panth
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Controller\Adminhtml\Item;

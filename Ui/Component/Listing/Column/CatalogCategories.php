@@ -1,12 +1,4 @@
 <?php
-/**
- * Catalog Categories Column Renderer for FAQ Grid
- *
- * @category  Panth
- * @package   Panth_Faq
- * @author    Panth
- * @copyright Copyright (c) 2025 Panth
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Ui\Component\Listing\Column;
@@ -18,23 +10,10 @@ use Magento\Framework\App\ResourceConnection;
 
 class CatalogCategories extends Column
 {
-    /**
-     * @var ResourceConnection
-     */
     protected $resourceConnection;
 
-    /**
-     * @var array
-     */
     protected $categoryNames = [];
 
-    /**
-     * @param ContextInterface $context
-     * @param UiComponentFactory $uiComponentFactory
-     * @param ResourceConnection $resourceConnection
-     * @param array $components
-     * @param array $data
-     */
     public function __construct(
         ContextInterface $context,
         UiComponentFactory $uiComponentFactory,
@@ -46,12 +25,6 @@ class CatalogCategories extends Column
         parent::__construct($context, $uiComponentFactory, $components, $data);
     }
 
-    /**
-     * Prepare Data Source
-     *
-     * @param array $dataSource
-     * @return array
-     */
     public function prepareDataSource(array $dataSource)
     {
         if (isset($dataSource['data']['items'])) {
@@ -63,12 +36,6 @@ class CatalogCategories extends Column
         return $dataSource;
     }
 
-    /**
-     * Get catalog categories HTML for FAQ item
-     *
-     * @param int $itemId
-     * @return string
-     */
     protected function getCatalogCategoriesHtml($itemId)
     {
         $connection = $this->resourceConnection->getConnection();
@@ -76,7 +43,6 @@ class CatalogCategories extends Column
         $categoryTable = $this->resourceConnection->getTableName('catalog_category_entity_varchar');
         $eavAttribute = $this->resourceConnection->getTableName('eav_attribute');
 
-        // Get category IDs and names
         $select = $connection->select()
             ->from(['jt' => $junctionTable], ['category_id'])
             ->joinLeft(
@@ -113,13 +79,6 @@ class CatalogCategories extends Column
         return implode(' ', $html);
     }
 
-    /**
-     * Truncate string
-     *
-     * @param string $string
-     * @param int $length
-     * @return string
-     */
     protected function truncate($string, $length)
     {
         if (strlen($string) > $length) {
@@ -128,12 +87,6 @@ class CatalogCategories extends Column
         return $string;
     }
 
-    /**
-     * Escape HTML
-     *
-     * @param string $string
-     * @return string
-     */
     protected function escapeHtml($string)
     {
         return htmlspecialchars($string, ENT_QUOTES, 'UTF-8');

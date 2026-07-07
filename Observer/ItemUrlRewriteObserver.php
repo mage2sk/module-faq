@@ -1,12 +1,4 @@
 <?php
-/**
- * FAQ Item URL Rewrite Observer
- *
- * @category  Panth
- * @package   Panth_Faq
- * @author    Panth
- * @copyright Copyright (c) 2025 Panth
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Observer;
@@ -25,41 +17,16 @@ class ItemUrlRewriteObserver implements ObserverInterface
 {
     const ENTITY_TYPE = 'faq_item';
 
-    /**
-     * @var UrlRewriteFactory
-     */
     protected $urlRewriteFactory;
 
-    /**
-     * @var UrlRewriteCollectionFactory
-     */
     protected $urlRewriteCollectionFactory;
 
-    /**
-     * @var StoreManagerInterface
-     */
     protected $storeManager;
 
-    /**
-     * @var ScopeConfigInterface
-     */
     protected $scopeConfig;
 
-    /**
-     * @var LoggerInterface
-     */
     protected $logger;
 
-    /**
-     * @param UrlRewriteFactory $urlRewriteFactory
-     * @param UrlRewriteCollectionFactory $urlRewriteCollectionFactory
-     * @param StoreManagerInterface $storeManager
-     * @param ScopeConfigInterface $scopeConfig
-     * @param LoggerInterface $logger
-     */
-    /**
-     * @var ItemResource
-     */
     protected $itemResource;
 
     public function __construct(
@@ -78,12 +45,6 @@ class ItemUrlRewriteObserver implements ObserverInterface
         $this->itemResource = $itemResource;
     }
 
-    /**
-     * Generate URL rewrites for FAQ item
-     *
-     * @param Observer $observer
-     * @return void
-     */
     public function execute(Observer $observer)
     {
         try {
@@ -95,9 +56,6 @@ class ItemUrlRewriteObserver implements ObserverInterface
 
             $itemId = (int)$item->getId();
 
-            // Always read the default url_key from the main table — the
-            // model's getUrlKey() may carry a scoped value when this
-            // observer fires off a per-store save.
             $defaults = $this->itemResource->loadDefaultValuesPublic($itemId);
             $defaultUrlKey = (string)($defaults['url_key'] ?? $item->getUrlKey());
             if ($defaultUrlKey === '') {
@@ -106,16 +64,11 @@ class ItemUrlRewriteObserver implements ObserverInterface
 
             $this->deleteExistingRewrites($itemId);
 
-            // Determine target stores. The item may be assigned to one or
-            // more store_ids via the membership multiselect; if nothing is
-            // assigned we fall through to the admin scope (0).
             $stores = $item->getStores() ?: $item->getData('store_id') ?: [0];
             if (!is_array($stores)) {
                 $stores = [$stores];
             }
 
-            // For each target store, write the rewrite using the per-store
-            // url_key override when one exists; fall back to the default.
             foreach ($stores as $storeId) {
                 $storeId = (int)$storeId;
                 $slug = $defaultUrlKey;
@@ -132,12 +85,6 @@ class ItemUrlRewriteObserver implements ObserverInterface
         }
     }
 
-    /**
-     * Delete existing URL rewrites
-     *
-     * @param int $itemId
-     * @return void
-     */
     protected function deleteExistingRewrites($itemId)
     {
         $collection = $this->urlRewriteCollectionFactory->create();
@@ -153,9 +100,6 @@ class ItemUrlRewriteObserver implements ObserverInterface
         }
     }
 
-    /**
-     * Create URL rewrite for one (item, slug, storeId) tuple.
-     */
     protected function createUrlRewrite(int $itemId, string $slug, int $storeId): void
     {
         $faqUrlKey = $this->scopeConfig->getValue(

@@ -11,10 +11,6 @@ use Panth\Faq\Logger\Logger;
 use Panth\Faq\Model\ResourceModel\Category as CategoryResource;
 use Panth\Faq\Model\ResourceModel\Category\CollectionFactory;
 
-/**
- * FAQ category edit-form DataProvider — store-scope aware.
- * Mirrors the Item DataProvider; see that file for the design notes.
- */
 class DataProvider extends AbstractDataProvider
 {
     protected $dataPersistor;
@@ -43,10 +39,6 @@ class DataProvider extends AbstractDataProvider
         parent::__construct($name, $primaryFieldName, $requestFieldName, $meta, $data);
     }
 
-    /**
-     * Field → fieldset map. See Item DataProvider for design rationale.
-     * Keep in sync with view/adminhtml/ui_component/faq_category_form.xml.
-     */
     private const SCOPED_FIELD_FIELDSETS = [
         'is_active'        => 'general',
         'name'             => 'general',

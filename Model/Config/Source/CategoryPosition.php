@@ -1,12 +1,4 @@
 <?php
-/**
- * Category Position Source Model
- *
- * @category  Panth
- * @package   Panth_Faq
- * @author    Panth
- * @copyright Copyright (c) 2025 Panth
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Model\Config\Source;
@@ -20,11 +12,6 @@ class CategoryPosition implements OptionSourceInterface
     const POSITION_SIDEBAR_TOP = 'sidebar_top';
     const POSITION_SIDEBAR_BOTTOM = 'sidebar_bottom';
 
-    /**
-     * Get options
-     *
-     * @return array
-     */
     public function toOptionArray()
     {
         return [

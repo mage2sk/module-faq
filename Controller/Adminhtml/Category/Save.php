@@ -30,7 +30,7 @@ class Save extends Action
 
         if ($data) {
             $id = $this->getRequest()->getParam('category_id');
-            // See Item/Save::execute() — same scope-resolution rule.
+
             $storeScopeId = (int)$this->getRequest()->getParam('store', 0);
             if ($storeScopeId === 0) {
                 $storeScopeId = (int)($data['store_scope_id'] ?? 0);
@@ -66,7 +66,6 @@ class Save extends Action
                     $model->setData(array_merge($model->getData(), $data));
                 }
 
-                // Same backward-compat rule as the Item save controller.
                 if (isset($data['store_id'])) {
                     $model->setStores($data['store_id']);
                 } elseif (!$id) {
@@ -105,11 +104,6 @@ class Save extends Action
         return $resultRedirect->setPath('*/*/');
     }
 
-    /**
-     * @param mixed $raw
-     * @param string[] $allowed
-     * @return string[]
-     */
     private function normalizeUseDefault($raw, array $allowed): array
     {
         if (!is_array($raw)) {

@@ -1,8 +1,4 @@
 <?php
-/**
- * "View on Storefront" button for the FAQ Category edit page.
- * See Item\Edit\ViewOnStorefrontButton for the design rationale.
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Block\Adminhtml\Category\Edit;

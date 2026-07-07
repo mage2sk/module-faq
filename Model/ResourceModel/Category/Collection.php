@@ -1,12 +1,4 @@
 <?php
-/**
- * FAQ Category Collection
- *
- * @category  Panth
- * @package   Panth_Faq
- * @author    Panth
- * @copyright Copyright (c) 2025 Panth
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Model\ResourceModel\Category;
@@ -17,34 +9,15 @@ use Panth\Faq\Model\ResourceModel\Category as CategoryResourceModel;
 
 class Collection extends AbstractCollection
 {
-    /**
-     * @var string
-     */
     protected $_idFieldName = 'category_id';
 
-    /**
-     * Store ID whose overrides should be merged into each row.
-     *
-     * @var int|null
-     */
     protected $storeScopeId = null;
 
-    /**
-     * Define resource model
-     *
-     * @return void
-     */
     protected function _construct()
     {
         $this->_init(CategoryModel::class, CategoryResourceModel::class);
     }
 
-    /**
-     * Merge per-store override values into every loaded category — same
-     * pattern as the Item collection.
-     *
-     * @return $this
-     */
     public function addStoreScope(int $storeId): self
     {
         if ($storeId > 0) {
@@ -53,13 +26,6 @@ class Collection extends AbstractCollection
         return $this;
     }
 
-    /**
-     * Add store filter
-     *
-     * @param int|array $storeId
-     * @param bool $withAdmin
-     * @return $this
-     */
     public function addStoreFilter($storeId, $withAdmin = true)
     {
         if (!$this->getFlag('store_filter_added')) {
@@ -74,13 +40,6 @@ class Collection extends AbstractCollection
         return $this;
     }
 
-    /**
-     * Perform add store filter
-     *
-     * @param int|array $storeId
-     * @param bool $withAdmin
-     * @return void
-     */
     protected function performAddStoreFilter($storeId, $withAdmin = true)
     {
         if ($storeId instanceof \Magento\Store\Model\Store) {
@@ -95,16 +54,9 @@ class Collection extends AbstractCollection
             $storeId[] = 0;
         }
 
-        // See Item/Collection::performAddStoreFilter for rationale (qualify
-        // the column to avoid 1052 ambiguity once the value table is joined).
         $this->addFilter('store_table.store_id', ['in' => $storeId], 'public');
     }
 
-    /**
-     * Join store relation table + scoped value overlay.
-     *
-     * @return void
-     */
     protected function _renderFiltersBefore()
     {
         $this->joinStoreRelationTable('panth_faq_category_store', 'category_id');
@@ -113,9 +65,6 @@ class Collection extends AbstractCollection
         parent::_renderFiltersBefore();
     }
 
-    /**
-     * @return void
-     */
     protected function applyStoreScopeJoin(): void
     {
         if ($this->storeScopeId === null || $this->storeScopeId <= 0) {
@@ -144,13 +93,6 @@ class Collection extends AbstractCollection
         }
     }
 
-    /**
-     * Join store relation table
-     *
-     * @param string $tableName
-     * @param string $columnName
-     * @return void
-     */
     protected function joinStoreRelationTable($tableName, $columnName)
     {
         if ($this->getFilter('store_id') || $this->getFilter('store_table.store_id')) {
@@ -164,20 +106,12 @@ class Collection extends AbstractCollection
         }
     }
 
-    /**
-     * Add active filter — store-scope aware. See Item::addActiveFilter().
-     *
-     * @return $this
-     */
     public function addActiveFilter()
     {
         $this->setFlag('panth_faq_cat_active_filter_pending', true);
         return $this;
     }
 
-    /**
-     * @return void
-     */
     protected function applyActiveFilter(): void
     {
         if (!$this->getFlag('panth_faq_cat_active_filter_pending')) {

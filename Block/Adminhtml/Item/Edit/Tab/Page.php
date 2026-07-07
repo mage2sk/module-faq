@@ -1,12 +1,4 @@
 <?php
-/**
- * FAQ Item CMS Page Assignment Block
- *
- * @category  Panth
- * @package   Panth_Faq
- * @author    Panth
- * @copyright Copyright (c) 2025 Panth
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Block\Adminhtml\Item\Edit\Tab;
@@ -19,23 +11,10 @@ use Magento\Framework\Registry;
 
 class Page extends Extended
 {
-    /**
-     * @var Registry
-     */
     protected $registry;
 
-    /**
-     * @var CollectionFactory
-     */
     protected $pageCollectionFactory;
 
-    /**
-     * @param Context $context
-     * @param BackendHelper $backendHelper
-     * @param CollectionFactory $pageCollectionFactory
-     * @param Registry $registry
-     * @param array $data
-     */
     public function __construct(
         Context $context,
         BackendHelper $backendHelper,
@@ -48,11 +27,6 @@ class Page extends Extended
         parent::__construct($context, $backendHelper, $data);
     }
 
-    /**
-     * Initialize grid
-     *
-     * @return void
-     */
     protected function _construct()
     {
         parent::_construct();
@@ -63,21 +37,11 @@ class Page extends Extended
         $this->setSaveParametersInSession(true);
     }
 
-    /**
-     * Get current FAQ item
-     *
-     * @return \Panth\Faq\Model\Item|null
-     */
     public function getItem()
     {
         return $this->registry->registry('panth_faq_item');
     }
 
-    /**
-     * Prepare collection
-     *
-     * @return $this
-     */
     protected function _prepareCollection()
     {
         $collection = $this->pageCollectionFactory->create();
@@ -87,17 +51,10 @@ class Page extends Extended
         return parent::_prepareCollection();
     }
 
-    /**
-     * Prepare columns
-     *
-     * @return $this
-     */
     protected function _prepareColumns()
     {
-        // Always ensure values is an array - even if empty
         $values = [];
 
-        // DEBUG: Log the type and value
         $writer = new \Zend_Log_Writer_Stream(BP . '/var/log/faq_grid_debug.log');
         $logger = new \Zend_Log();
         $logger->addWriter($writer);
@@ -114,12 +71,10 @@ class Page extends Extended
                 $logger->info('Page Grid - Values content: ' . print_r($values, true));
             }
         } catch (\Exception $e) {
-            // Fail safe - use empty array
             $logger->error('Page Grid - Exception: ' . $e->getMessage());
             $values = [];
         }
 
-        // Ensure values is definitely an array
         if (!is_array($values)) {
             $logger->error('Page Grid - VALUES IS NOT AN ARRAY! Type: ' . gettype($values) . ' Value: ' . print_r($values, true));
             $values = [];
@@ -182,27 +137,16 @@ class Page extends Extended
         return parent::_prepareColumns();
     }
 
-    /**
-     * Get grid url
-     *
-     * @return string
-     */
     public function getGridUrl()
     {
         return $this->getUrl('faq/item/pagesgrid', ['_current' => true]);
     }
 
-    /**
-     * Get selected pages
-     *
-     * @return array
-     */
     protected function getSelectedPages(): array
     {
         try {
             $pages = $this->getRequest()->getPost('pages');
             if ($pages !== null) {
-                // Post data exists, use it
                 if (!is_array($pages)) {
                     $pages = [];
                 }
@@ -210,19 +154,17 @@ class Page extends Extended
             }
 
             $item = $this->getItem();
-            // Only try to get data if item exists and has an ID
+
             if (!$item || !$item->getId()) {
                 return [];
             }
 
             $pages = $item->getData('pages');
 
-            // If pages is null or empty, return empty array
             if ($pages === null || $pages === '') {
                 return [];
             }
 
-            // Handle JSON or serialized data
             if (is_string($pages)) {
                 $decoded = json_decode($pages, true);
                 if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
@@ -235,39 +177,22 @@ class Page extends Extended
                 return [];
             }
 
-            // Ensure we return array of integers only
             return array_filter(array_map('intval', $pages));
         } catch (\Exception $e) {
-            // Fail safe - always return array
             return [];
         }
     }
 
-    /**
-     * Can show tab
-     *
-     * @return bool
-     */
     public function canShowTab()
     {
         return true;
     }
 
-    /**
-     * Is hidden
-     *
-     * @return bool
-     */
     public function isHidden()
     {
         return false;
     }
 
-    /**
-     * After HTML
-     *
-     * @return string
-     */
     public function _afterToHtml($html)
     {
         $html = parent::_afterToHtml($html);

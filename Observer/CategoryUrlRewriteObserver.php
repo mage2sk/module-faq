@@ -1,12 +1,4 @@
 <?php
-/**
- * FAQ Category URL Rewrite Observer
- *
- * @category  Panth
- * @package   Panth_Faq
- * @author    Panth
- * @copyright Copyright (c) 2025 Panth
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Observer;
@@ -25,34 +17,16 @@ class CategoryUrlRewriteObserver implements ObserverInterface
 {
     const ENTITY_TYPE = 'faq_category';
 
-    /**
-     * @var UrlRewriteFactory
-     */
     protected $urlRewriteFactory;
 
-    /**
-     * @var UrlRewriteCollectionFactory
-     */
     protected $urlRewriteCollectionFactory;
 
-    /**
-     * @var StoreManagerInterface
-     */
     protected $storeManager;
 
-    /**
-     * @var LoggerInterface
-     */
     protected $logger;
 
-    /**
-     * @var ScopeConfigInterface
-     */
     protected $scopeConfig;
 
-    /**
-     * @var CategoryResource
-     */
     protected $categoryResource;
 
     public function __construct(
@@ -81,8 +55,6 @@ class CategoryUrlRewriteObserver implements ObserverInterface
 
             $categoryId = (int)$category->getId();
 
-            // Read default url_key from the main table (see Item observer
-            // for the rationale).
             $defaults = $this->categoryResource->loadDefaultValuesPublic($categoryId);
             $defaultUrlKey = (string)($defaults['url_key'] ?? $category->getUrlKey());
             if ($defaultUrlKey === '') {

@@ -1,12 +1,4 @@
 <?php
-/**
- * Product FAQ List Block
- *
- * @category  Panth
- * @package   Panth_Faq
- * @author    Panth
- * @copyright Copyright (c) 2025 Panth
- */
 declare(strict_types=1);
 
 namespace Panth\Faq\Block\Adminhtml\Product\Edit\Tab;
@@ -19,33 +11,14 @@ use Magento\Framework\App\ResourceConnection;
 
 class FaqList extends Template
 {
-    /**
-     * @var string
-     */
     protected $_template = 'Panth_Faq::product/faq_assignment.phtml';
 
-    /**
-     * @var Registry
-     */
     protected $registry;
 
-    /**
-     * @var CollectionFactory
-     */
     protected $faqCollectionFactory;
 
-    /**
-     * @var ResourceConnection
-     */
     protected $resourceConnection;
 
-    /**
-     * @param Context $context
-     * @param Registry $registry
-     * @param CollectionFactory $faqCollectionFactory
-     * @param ResourceConnection $resourceConnection
-     * @param array $data
-     */
     public function __construct(
         Context $context,
         Registry $registry,
@@ -59,36 +32,21 @@ class FaqList extends Template
         parent::__construct($context, $data);
     }
 
-    /**
-     * Get current product
-     *
-     * @return \Magento\Catalog\Model\Product|null
-     */
     public function getProduct()
     {
         return $this->registry->registry('current_product');
     }
 
-    /**
-     * Get FAQ items
-     *
-     * @return \Panth\Faq\Model\Item[]
-     */
     public function getFaqItems()
     {
         $collection = $this->faqCollectionFactory->create();
         $collection->addFieldToFilter('is_active', 1)
             ->setOrder('question', 'ASC')
-            ->setPageSize(100); // Limit to prevent browser crash
+            ->setPageSize(100);
 
         return $collection->getItems();
     }
 
-    /**
-     * Get selected FAQ IDs
-     *
-     * @return array
-     */
     public function getSelectedFaqIds(): array
     {
         $product = $this->getProduct();
