@@ -10,7 +10,7 @@
  *   2. The DataProvider injects `service.template = ui/form/element/helper/service`
  *      into the meta of every scoped field WHEN ?store=<id> is on the URL.
  *      That single-template-per-field is what renders the small inline
- *      "Use Default Value" checkbox you see on Catalog product attributes —
+ *      "Use Default Value" checkbox you see on Catalog product attributes -
  *      including the auto-`name="use_default[<field>]"` form submission and
  *      the auto-toggle of the field's disabled state via Knockout's
  *      isUseDefault binding (see vendor/magento/module-ui/view/base/web/js/
@@ -20,7 +20,7 @@
  *      checkbox renders pre-checked and the field renders disabled until
  *      the admin opts in.
  *
- * Result: this XML stays plain — no manual checkboxes, no imports/disabled
+ * Result: this XML stays plain - no manual checkboxes, no imports/disabled
  * binding wiring, no module CSS. Toggling, save payload, and visual
  * rendering are all handled by Magento's stock Knockout abstract form
  * element and the helper/service.html template.

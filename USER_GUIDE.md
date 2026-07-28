@@ -1,4 +1,4 @@
-# Panth FAQ — User Guide
+# Panth FAQ - User Guide
 
 This guide is for store administrators who want to set up and manage
 FAQs using the Panth_Faq extension.
@@ -112,7 +112,7 @@ Navigate to **Panth Infotech > FAQ > FAQ Items**.
 
 1. Click **Add New FAQ Item**
 2. Enter the **Question** (plain text)
-3. Enter the **Answer** (WYSIWYG editor — supports HTML, images, links)
+3. Enter the **Answer** (WYSIWYG editor - supports HTML, images, links)
 4. Select a **FAQ Category** from the tree
 5. Set the sort order, status, and "Show on Main Page" flag
 6. Use the **Products**, **Catalog Categories**, and **CMS Pages** tabs
@@ -122,9 +122,9 @@ Navigate to **Panth Infotech > FAQ > FAQ Items**.
 ### Mass actions
 
 From the FAQ Items grid you can:
-- **Mass Delete** — delete selected items
-- **Mass Status** — enable/disable selected items
-- **Mass Show on Main** / **Mass Hide from Main** — control main page
+- **Mass Delete** - delete selected items
+- **Mass Status** - enable/disable selected items
+- **Mass Show on Main** / **Mass Hide from Main** - control main page
   visibility
 
 ---
@@ -133,9 +133,9 @@ From the FAQ Items grid you can:
 
 Each FAQ item can be assigned to:
 
-- **Products** — the FAQ appears on those product detail pages
-- **Catalog Categories** — the FAQ appears on those category pages
-- **CMS Pages** — the FAQ appears on those CMS pages
+- **Products** - the FAQ appears on those product detail pages
+- **Catalog Categories** - the FAQ appears on those category pages
+- **CMS Pages** - the FAQ appears on those CMS pages
 
 Assignment is done from the FAQ item edit form using the grid tabs.
 You can also assign from the reverse direction: the Product edit form,
@@ -170,9 +170,9 @@ Verify your schema at https://search.google.com/test/rich-results.
 
 The module ships with dual template sets:
 
-- **Hyva** — Alpine.js-powered accordion, Tailwind CSS utility classes,
+- **Hyva** - Alpine.js-powered accordion, Tailwind CSS utility classes,
   responsive and accessible.
-- **Luma** — vanilla JavaScript accordion with inline CSS, no
+- **Luma** - vanilla JavaScript accordion with inline CSS, no
   RequireJS dependencies for the accordion itself.
 
 The correct template set is selected automatically based on the active

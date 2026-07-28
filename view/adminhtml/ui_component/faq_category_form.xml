@@ -2,7 +2,7 @@
 <!--
 /**
  * FAQ Category edit form (Panth_Faq 1.1.0+).
- * See faq_item_form.xml for design rationale — same native-Magento
+ * See faq_item_form.xml for design rationale - same native-Magento
  * service.template flow handled by the DataProvider's getMeta().
  */
 -->
@@ -100,7 +100,7 @@
             </formElements>
         </field>
 
-        <!-- "Show on Store Views" multiselect removed — see faq_item_form.xml. -->
+        <!-- "Show on Store Views" multiselect removed - see faq_item_form.xml. -->
 
         <field name="name" sortOrder="20" formElement="input">
             <argument name="data" xsi:type="array">
