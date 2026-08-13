@@ -62,16 +62,18 @@ class Schema extends Template
             }
 
             $product = $this->registry->registry('current_product');
-            if ($product && $product->getId() && $this->faqHelper->isProductPageEnabled()) {
-                $collection->addProductFilter($product->getId());
+            if ($product && $product->getId()) {
+                if ($this->faqHelper->isProductPageEnabled()) {
+                    $collection->addProductFilter($product->getId());
 
-                $limit = (int)$this->faqHelper->getConfigValue(FaqHelper::XML_PATH_PRODUCT_LIMIT);
-                if ($limit > 0) {
-                    $collection->setPageSize($limit);
+                    $limit = (int)$this->faqHelper->getConfigValue(FaqHelper::XML_PATH_PRODUCT_LIMIT);
+                    if ($limit > 0) {
+                        $collection->setPageSize($limit);
+                    }
+                } else {
+                    $collection->addFieldToFilter('main_table.item_id', 0);
                 }
-            }
-
-            elseif ($category = $this->registry->registry('current_category')) {
+            } elseif ($category = $this->registry->registry('current_category')) {
                 if ($category->getId() && $this->faqHelper->isCategoryPageEnabled()) {
                     $collection->addCatalogCategoryFilter($category->getId());
 
@@ -79,16 +81,17 @@ class Schema extends Template
                     if ($limit > 0) {
                         $collection->setPageSize($limit);
                     }
+                } else {
+                    $collection->addFieldToFilter('main_table.item_id', 0);
                 }
-            }
-
-            elseif ($page = $this->registry->registry('cms_page')) {
+            } elseif ($page = $this->registry->registry('cms_page')) {
                 if ($page->getId() && $this->faqHelper->isCmsPageEnabled()) {
                     $collection->addPageFilter($page->getId());
+                } else {
+                    $collection->addFieldToFilter('main_table.item_id', 0);
                 }
-            }
-
-            else {
+            } elseif ($this->getRequest()->getRouteName() !== 'faq') {
+                $collection->addFieldToFilter('main_table.item_id', 0);
             }
 
             $this->faqItems = $collection;
