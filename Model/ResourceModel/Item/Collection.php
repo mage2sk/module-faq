@@ -13,6 +13,8 @@ class Collection extends AbstractCollection
 
     protected $storeScopeId = null;
 
+    protected $searchQuery = null;
+
     protected function _construct()
     {
         $this->_init(ItemModel::class, ItemResourceModel::class);
@@ -63,6 +65,7 @@ class Collection extends AbstractCollection
         $this->joinStoreRelationTable('panth_faq_item_store', 'item_id');
         $this->applyStoreScopeJoin();
         $this->applyActiveFilter();
+        $this->applySearchFilter();
         parent::_renderFiltersBefore();
     }
 
@@ -162,6 +165,34 @@ class Collection extends AbstractCollection
         );
 
         return $this;
+    }
+
+    public function addSearchFilter(string $query): self
+    {
+        $this->searchQuery = $query;
+        return $this;
+    }
+
+    protected function applySearchFilter(): void
+    {
+        if ($this->searchQuery === null || $this->searchQuery === '') {
+            return;
+        }
+        if ($this->getFlag('panth_faq_search_filter_applied')) {
+            return;
+        }
+        $this->setFlag('panth_faq_search_filter_applied', true);
+
+        $scoped = $this->storeScopeId !== null && $this->storeScopeId > 0;
+        $question = $scoped ? 'COALESCE(panth_faq_item_value.question, main_table.question)' : 'main_table.question';
+        $answer = $scoped ? 'COALESCE(panth_faq_item_value.answer, main_table.answer)' : 'main_table.answer';
+        $like = '%' . $this->searchQuery . '%';
+        $connection = $this->getConnection();
+
+        $this->getSelect()->where(
+            $connection->quoteInto($question . ' LIKE ?', $like)
+            . ' OR ' . $connection->quoteInto($answer . ' LIKE ?', $like)
+        );
     }
 
     public function addActiveFilter()

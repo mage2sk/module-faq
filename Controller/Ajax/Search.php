@@ -48,18 +48,11 @@ class Search implements HttpPostActionInterface
             }
 
             $collection = $this->itemCollectionFactory->create();
-            $collection->addFieldToFilter('is_active', 1);
+            $collection->addActiveFilter();
 
             $storeId = $this->storeManager->getStore()->getId();
             $collection->addStoreFilter($storeId);
-
-            $collection->addFieldToFilter(
-                ['question', 'answer'],
-                [
-                    ['like' => '%' . $query . '%'],
-                    ['like' => '%' . $query . '%']
-                ]
-            );
+            $collection->addSearchFilter((string) $query);
 
             if ($categoryId > 0) {
                 $collection->getSelect()->join(
