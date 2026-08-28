@@ -4,6 +4,16 @@ All notable changes to this extension are documented here. The format
 is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.9] - 2026-08-28
+
+### Fixed
+- **Templates are safe under an enforced Content-Security-Policy.** Every inline event handler was removed so the module keeps working on stores whose `script-src` has no `'unsafe-inline'`:
+  - The Luma product, category, CMS-page and widget search forms no longer carry `onsubmit="return false"`. A delegated `submit` listener now cancels the navigation instead, which also covers pages that render the block more than once.
+  - The three admin "Create New FAQ Item" buttons (product, category and CMS page edit forms) bind `window.open` from the template's existing script block instead of an `onclick` attribute.
+- On Hyva, the inline `<script>` blocks of the embedded FAQ, widget and FAQ index templates are registered with Hyva's CSP helper (`$hyvaCsp->registerInlineScript()`), so they receive a nonce or hash when `'unsafe-inline'` is disabled. No effect on Luma or on Magento's default report-only policy.
+- The FAQ page's AJAX search (`faq/ajax/search`, used by the Hyva FAQ index) failed with `Column 'is_active' in where clause is ambiguous` on every query since per-store content overrides were introduced, so it always showed "No FAQs found". The controller now uses the collection's scope-aware active and search filters, which also match per-store question/answer overrides.
+- On Luma, the product and CMS-page FAQ accordions toggled twice per click because the vanilla accordion and the `Panth_Faq/js/faq` widget were both bound. The vanilla accordion now only runs where RequireJS is absent, matching the widget template.
+
 ## [1.1.8]
 
 ### Changed

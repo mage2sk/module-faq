@@ -367,6 +367,10 @@ Drop FAQ blocks into any Magento container via **Content -> Widgets**:
 
 Yes. Panth FAQ ships native Alpine.js templates for Hyva, with no jQuery, Knockout, or RequireJS. The module reads the active theme through `Panth_Core` and serves the Hyva template automatically.
 
+### Does Panth FAQ work with an enforced Content-Security-Policy?
+
+Yes. The templates contain no inline event handlers (`onclick`, `onsubmit`, ...), so a strict `script-src` without `'unsafe-inline'` does not break the accordion, the search box or the admin assignment tabs. On Hyva the inline script blocks are registered through Hyva's CSP helper and receive a nonce or hash automatically. Luma has no nonce mechanism of its own, so a Luma store still needs `'unsafe-inline'` for script blocks, as it does for Magento's own templates.
+
 ### Does the FAQPage schema work on product pages?
 
 Yes. When you assign FAQs to a product and the module renders them on the PDP, it also outputs FAQPage JSON-LD for those items. Google's guidelines allow this alongside the product's own Product schema.
