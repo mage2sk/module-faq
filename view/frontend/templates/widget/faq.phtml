@@ -31,7 +31,7 @@ $showViewAll = $block->shouldShowViewAllLink();
     <!-- Search Box -->
     <div class="faq-filters">
         <div class="faq-search">
-            <form id="widget-faq-search-form" onsubmit="return false;">
+            <form id="widget-faq-search-form">
                 <div class="search-field">
                     <input type="text"
                            name="q"
@@ -116,6 +116,7 @@ if (typeof require === 'undefined') {
     });
 }
 </script>
+<?php if (isset($hyvaCsp)) { $hyvaCsp->registerInlineScript(); } ?>
 
 <script type="text/x-magento-init">
 {
@@ -130,6 +131,12 @@ if (typeof require === 'undefined') {
 <script>
 (function() {
     'use strict';
+
+    document.addEventListener('submit', function (e) {
+        if (e.target && e.target.id === 'widget-faq-search-form') {
+            e.preventDefault();
+        }
+    });
 
     function initFaqSearch() {
         var searchInput = document.getElementById('widget-faq-search-input');
@@ -251,6 +258,7 @@ if (typeof require === 'undefined') {
     }
 })();
 </script>
+<?php if (isset($hyvaCsp)) { $hyvaCsp->registerInlineScript(); } ?>
 
 <style>
 /* Widget FAQ Custom Styling */

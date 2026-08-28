@@ -35,7 +35,7 @@ $title = $block->getTitle();
     <!-- Search Box -->
     <div class="faq-filters">
         <div class="faq-search">
-            <form id="cms-page-faq-search-form" onsubmit="return false;">
+            <form id="cms-page-faq-search-form">
                 <div class="search-field">
                     <input type="text"
                            name="q"
@@ -116,7 +116,7 @@ $title = $block->getTitle();
 <!-- FAQ Accordion for Hyva theme -->
 <script>
 /* Vanilla JS accordion for Luma */
-{
+if (typeof require === 'undefined') {
     // Hyva theme - initialize accordion directly
     document.addEventListener('DOMContentLoaded', function() {
         var wrapper = document.querySelector('.cms-page-faq-wrapper');
@@ -150,6 +150,7 @@ $title = $block->getTitle();
     });
 }
 </script>
+<?php if (isset($hyvaCsp)) { $hyvaCsp->registerInlineScript(); } ?>
 
 <script type="text/x-magento-init">
 {
@@ -164,6 +165,12 @@ $title = $block->getTitle();
 <script>
 (function() {
     'use strict';
+
+    document.addEventListener('submit', function (e) {
+        if (e.target && e.target.id === 'cms-page-faq-search-form') {
+            e.preventDefault();
+        }
+    });
 
     function initFaqSearch() {
         var searchInput = document.getElementById('cms-page-faq-search-input');
@@ -285,6 +292,7 @@ $title = $block->getTitle();
     }
 })();
 </script>
+<?php if (isset($hyvaCsp)) { $hyvaCsp->registerInlineScript(); } ?>
 
 <style>
 /* CMS Page FAQ Custom Styling */

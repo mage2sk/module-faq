@@ -29,7 +29,7 @@ $faqListUrl = $block->getFaqListUrl();
     <!-- Search Box -->
     <div class="faq-filters">
         <div class="faq-search">
-            <form id="category-faq-search-form" onsubmit="return false;">
+            <form id="category-faq-search-form">
                 <div class="search-field">
                     <input type="text"
                            name="q"
@@ -131,10 +131,17 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+<?php if (isset($hyvaCsp)) { $hyvaCsp->registerInlineScript(); } ?>
 
 <script>
 (function() {
     'use strict';
+
+    document.addEventListener('submit', function (e) {
+        if (e.target && e.target.id === 'category-faq-search-form') {
+            e.preventDefault();
+        }
+    });
 
     function initFaqSearch() {
         var searchInput = document.getElementById('category-faq-search-input');
@@ -256,6 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 })();
 </script>
+<?php if (isset($hyvaCsp)) { $hyvaCsp->registerInlineScript(); } ?>
 
 <style>
 .category-faq-wrapper { margin:32px 0; padding:28px; background:#FAFAFA; border:1px solid #E5E7EB; border-radius:12px; font-family:'DM Sans','Inter',system-ui,sans-serif; }

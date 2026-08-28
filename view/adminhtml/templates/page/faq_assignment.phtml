@@ -15,8 +15,7 @@ $selectedIds = $block->getSelectedFaqIds();
     <div class="admin__field-control" style="margin-bottom: 20px;">
         <button type="button"
                 id="create-new-faq-btn"
-                class="action-secondary"
-                onclick="window.open('<?= $block->escapeUrl($block->getUrl('faq/item/new')) ?>', '_blank')">
+                class="action-secondary">
             <span><?= $block->escapeHtml(__('Create New FAQ Item')) ?></span>
         </button>
         <button type="button"
@@ -90,6 +89,10 @@ require([
     // Refresh list
     $('#refresh-faq-list-btn').on('click', function() {
         location.reload();
+    });
+
+    $('#create-new-faq-btn').on('click', function() {
+        window.open('<?= $block->escapeJs($block->getUrl('faq/item/new')) ?>', '_blank');
     });
 
     // Save FAQ assignments
