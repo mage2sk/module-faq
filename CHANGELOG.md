@@ -4,7 +4,11 @@ All notable changes to this extension are documented here. The format
 is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [1.2.0]
+## [1.2.1]
+
+Replaces 1.2.0, which was withdrawn: it was tagged from a commit that predated
+the 1.1.9 release and would have reverted its changes. The code below is
+identical.
 
 ### Fixed
 - **The FAQ hub and FAQ category pages serialised every active FAQ into one `FAQPage`.** The schema collection started as "all active FAQs" and relied on a scope detector to narrow it, but there was no terminal fallback and no detector for the module's own routes, so those two pages emitted the entire table. On a large catalogue that is thousands of questions and multiple megabytes of inline JSON-LD in every full-page-cache entry, which Search Engines reject as oversized. The default is inverted: a request that matches no scope now emits nothing at all.
