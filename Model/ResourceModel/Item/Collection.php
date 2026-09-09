@@ -195,6 +195,17 @@ class Collection extends AbstractCollection
         );
     }
 
+    public function addFaqCategoryAssignmentFilter()
+    {
+        $this->getSelect()->join(
+            ['faq_cat' => $this->getTable('panth_faq_item_faq_category')],
+            'main_table.item_id = faq_cat.item_id',
+            []
+        )->group('main_table.item_id');
+
+        return $this;
+    }
+
     public function addActiveFilter()
     {
         $this->setFlag('panth_faq_active_filter_pending', true);

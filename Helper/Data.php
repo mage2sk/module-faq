@@ -60,6 +60,7 @@ class Data extends AbstractHelper
     const XML_PATH_CMS_TITLE = 'panth_faq/cms_page/title';
 
     const XML_PATH_ENABLE_SCHEMA = 'panth_faq/seo/enable_schema';
+    const XML_PATH_SCHEMA_MAX_QUESTIONS = 'panth_faq/seo/max_questions';
     const XML_PATH_CANONICAL_URL = 'panth_faq/seo/canonical_url';
 
     public function isEnabled($storeId = null): bool

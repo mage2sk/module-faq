@@ -4,6 +4,16 @@ All notable changes to this extension are documented here. The format
 is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.0]
+
+### Fixed
+- **The FAQ hub and FAQ category pages serialised every active FAQ into one `FAQPage`.** The schema collection started as "all active FAQs" and relied on a scope detector to narrow it, but there was no terminal fallback and no detector for the module's own routes, so those two pages emitted the entire table. On a large catalogue that is thousands of questions and multiple megabytes of inline JSON-LD in every full-page-cache entry, which Search Engines reject as oversized. The default is inverted: a request that matches no scope now emits nothing at all.
+- The FAQ hub emits only items assigned to a FAQ category, which is what the hub actually lists, so orphan and product-only items are excluded. The FAQ category listing emits only that category's items. Product, catalog category, CMS and FAQ item pages are unchanged.
+
+### Added
+- **Max Questions Per FAQPage** under the SEO group, default 30, 0 to disable. A backstop so a single block can never grow past what search engines accept. Truncation keeps the first N items in sort order, so a large page still emits a valid bounded result instead of losing its schema.
+- `addFaqCategoryAssignmentFilter()` on the item collection, restricting to items assigned to at least one FAQ category.
+
 ## [1.1.9] - 2026-08-28
 
 ### Fixed

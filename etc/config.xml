@@ -46,6 +46,7 @@
             <seo>
                 <enable_schema>1</enable_schema>
                 <canonical_url>1</canonical_url>
+                <max_questions>30</max_questions>
             </seo>
         </panth_faq>
     </default>

@@ -111,6 +111,13 @@
                     <comment>Add JSON-LD FAQPage schema for Google rich results</comment>
                     <config_path>panth_faq/seo/enable_schema</config_path>
                 </field>
+                <field id="max_questions" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Max Questions Per FAQPage</label>
+                    <validate>validate-digits</validate>
+                    <comment><![CDATA[Safety cap on the number of questions in a single FAQPage JSON-LD block. Search engines ignore FAQPage markup carrying too many questions. Set 0 to disable the cap.]]></comment>
+                    <config_path>panth_faq/seo/max_questions</config_path>
+                    <depends><field id="enable_schema">1</field></depends>
+                </field>
             </group>
 
             <!-- Design -->
