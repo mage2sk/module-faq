@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Panth FAQ ACL Configuration
+ *
+ * @category  Panth
+ * @package   Panth_Faq
+ * @author    Panth
+ * @copyright Copyright (c) 2025 Panth
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Acl/etc/acl.xsd">
+    <acl>
+        <resources>
+            <resource id="Magento_Backend::admin">
+                <resource id="Panth_Faq::faq" title="FAQ" translate="title" sortOrder="100">
+                    <resource id="Panth_Faq::item" title="FAQ Items" translate="title" sortOrder="10">
+                        <resource id="Panth_Faq::item_save" title="Save FAQ Item" translate="title" sortOrder="10"/>
+                        <resource id="Panth_Faq::item_delete" title="Delete FAQ Item" translate="title" sortOrder="20"/>
+                    </resource>
+                    <resource id="Panth_Faq::category" title="FAQ Categories" translate="title" sortOrder="20">
+                        <resource id="Panth_Faq::category_save" title="Save FAQ Category" translate="title" sortOrder="10"/>
+                        <resource id="Panth_Faq::category_delete" title="Delete FAQ Category" translate="title" sortOrder="20"/>
+                    </resource>
+                    <resource id="Panth_Faq::config" title="Configuration" translate="title" sortOrder="30"/>
+                </resource>
+            </resource>
+        </resources>
+    </acl>
+</config>

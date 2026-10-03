@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * FAQ Item View Layout - Hyva Theme Override
+ *
+ * @category  Panth
+ * @package   Panth_Faq
+ * @author    Panth
+ * @copyright Copyright (c) 2025 Panth
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="faq_index_view"/>
+    <body>
+        <referenceBlock name="faq.view">
+            <action method="setTemplate">
+                <argument name="template" xsi:type="string">Panth_Faq::hyva/index/view.phtml</argument>
+            </action>
+        </referenceBlock>
+    </body>
+</page>

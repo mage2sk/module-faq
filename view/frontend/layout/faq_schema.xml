@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * FAQ Schema Layout Handle
+ *
+ * @category  Panth
+ * @package   Panth_Faq
+ * @author    Panth
+ * @copyright Copyright (c) 2025 Panth
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="before.body.end">
+            <block class="Panth\Faq\Block\Schema" name="faq.schema" template="Panth_Faq::schema.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

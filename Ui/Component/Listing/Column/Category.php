@@ -1,0 +1,91 @@
+<?php
+declare(strict_types=1);
+
+namespace Panth\Faq\Ui\Component\Listing\Column;
+
+use Magento\Framework\View\Element\UiComponent\ContextInterface;
+use Magento\Framework\View\Element\UiComponentFactory;
+use Magento\Ui\Component\Listing\Columns\Column;
+use Panth\Faq\Model\ResourceModel\Category\CollectionFactory as CategoryCollectionFactory;
+
+class Category extends Column
+{
+    protected $categoryCollectionFactory;
+
+    protected $categoryNames = [];
+
+    public function __construct(
+        ContextInterface $context,
+        UiComponentFactory $uiComponentFactory,
+        CategoryCollectionFactory $categoryCollectionFactory,
+        array $components = [],
+        array $data = []
+    ) {
+        $this->categoryCollectionFactory = $categoryCollectionFactory;
+        parent::__construct($context, $uiComponentFactory, $components, $data);
+    }
+
+    public function prepareDataSource(array $dataSource)
+    {
+        if (isset($dataSource['data']['items'])) {
+            $this->loadCategoryNames();
+
+            foreach ($dataSource['data']['items'] as &$item) {
+                if (isset($item['category_id'])) {
+                    $categoryIds = $item['category_id'];
+
+                    if (is_string($categoryIds)) {
+                        $categoryIds = explode(',', $categoryIds);
+                    } elseif (!is_array($categoryIds)) {
+                        $categoryIds = [$categoryIds];
+                    }
+
+                    $categoryIds = array_filter($categoryIds);
+
+                    if (!empty($categoryIds)) {
+                        $categoryLabels = [];
+                        foreach ($categoryIds as $catId) {
+                            $catId = (int)$catId;
+                            if (isset($this->categoryNames[$catId])) {
+                                $categoryLabels[] = sprintf(
+                                    '<span title="ID: %d - %s" style="display: inline-block; padding: 2px 6px; margin: 2px; background: #f8f8f8; border: 1px solid #d6d6d6; color: #41362f; border-radius: 2px; font-size: 12px; cursor: help;">%s</span>',
+                                    $catId,
+                                    $this->escapeHtml($this->categoryNames[$catId]),
+                                    $this->escapeHtml($this->categoryNames[$catId])
+                                );
+                            } else {
+                                $categoryLabels[] = sprintf(
+                                    '<span title="ID: %d" style="display: inline-block; padding: 2px 6px; margin: 2px; background: #f8f8f8; border: 1px solid #d6d6d6; color: #41362f; border-radius: 2px; font-size: 12px;">ID: %d</span>',
+                                    $catId,
+                                    $catId
+                                );
+                            }
+                        }
+                        $item['category_id'] = implode(' ', $categoryLabels);
+                    } else {
+                        $item['category_id'] = '<span style="color: #666; font-style: italic;">No category</span>';
+                    }
+                } else {
+                    $item['category_id'] = '<span style="color: #666; font-style: italic;">No category</span>';
+                }
+            }
+        }
+
+        return $dataSource;
+    }
+
+    protected function loadCategoryNames()
+    {
+        if (empty($this->categoryNames)) {
+            $collection = $this->categoryCollectionFactory->create();
+            foreach ($collection as $category) {
+                $this->categoryNames[$category->getId()] = $category->getName();
+            }
+        }
+    }
+
+    protected function escapeHtml($string)
+    {
+        return htmlspecialchars($string, ENT_QUOTES, 'UTF-8');
+    }
+}
