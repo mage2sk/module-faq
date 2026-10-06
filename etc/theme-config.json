@@ -1,0 +1,11 @@
+{
+  "faq-primary": "#0D9488",
+  "faq-primary-dark": "#0F766E",
+  "faq-primary-light": "#F0FDFA",
+  "faq-bg": "#FFFFFF",
+  "faq-surface": "#FAFAFA",
+  "faq-border": "#E5E7EB",
+  "faq-text": "#171717",
+  "faq-text-secondary": "#525252",
+  "faq-text-muted": "#A3A3A3"
+}

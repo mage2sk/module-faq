@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Admin Events Configuration
+ *
+ * @category  Panth
+ * @package   Panth_Faq
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+
+    <!-- Webhook notification on config save -->
+    <event name="admin_system_config_changed_section_panth_faq">
+        <observer name="panth_faq_config_save_after"
+                  instance="Panth\Faq\Observer\ConfigSaveAfter"/>
+    </event>
+
+
+</config>

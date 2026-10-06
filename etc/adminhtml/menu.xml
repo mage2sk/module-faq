@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Panth_Faq::group"
+             title="FAQ"
+             module="Panth_Faq"
+             sortOrder="60"
+             parent="Panth_Core::panth_extensions"
+             resource="Panth_Faq::item"/>
+        <add id="Panth_Faq::item"
+             title="Manage Items"
+             module="Panth_Faq"
+             sortOrder="10"
+             parent="Panth_Faq::group"
+             action="faq/item"
+             resource="Panth_Faq::item"/>
+        <add id="Panth_Faq::category"
+             title="Manage Categories"
+             module="Panth_Faq"
+             sortOrder="20"
+             parent="Panth_Faq::group"
+             action="faq/category"
+             resource="Panth_Faq::category"/>
+        <add id="Panth_Faq::settings"
+             title="Configuration"
+             module="Panth_Faq"
+             sortOrder="99"
+             parent="Panth_Faq::group"
+             action="adminhtml/system_config/edit/section/panth_faq"
+             resource="Panth_Faq::config"/>
+    </menu>
+</config>

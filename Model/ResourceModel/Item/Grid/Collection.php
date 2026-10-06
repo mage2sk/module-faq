@@ -1,0 +1,52 @@
+<?php
+declare(strict_types=1);
+
+namespace Panth\Faq\Model\ResourceModel\Item\Grid;
+
+use Magento\Framework\Data\Collection\Db\FetchStrategyInterface as FetchStrategy;
+use Magento\Framework\Data\Collection\EntityFactoryInterface as EntityFactory;
+use Magento\Framework\Event\ManagerInterface as EventManager;
+use Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult;
+use Psr\Log\LoggerInterface as Logger;
+
+class Collection extends SearchResult
+{
+    public function __construct(
+        EntityFactory $entityFactory,
+        Logger $logger,
+        FetchStrategy $fetchStrategy,
+        EventManager $eventManager,
+        $mainTable = 'panth_faq_item',
+        $resourceModel = \Panth\Faq\Model\ResourceModel\Item::class
+    ) {
+        parent::__construct(
+            $entityFactory,
+            $logger,
+            $fetchStrategy,
+            $eventManager,
+            $mainTable,
+            $resourceModel
+        );
+        $this->addFilterToMap('item_id', 'main_table.item_id');
+        $this->addFilterToMap('created_at', 'main_table.created_at');
+        $this->addFilterToMap('updated_at', 'main_table.updated_at');
+        $this->addFilterToMap('sort_order', 'main_table.sort_order');
+    }
+
+    protected function _renderFiltersBefore()
+    {
+        $junctionTable = $this->getTable('panth_faq_item_faq_category');
+
+        if (!$this->getFlag('category_join_added')) {
+            $this->getSelect()->joinLeft(
+                ['faq_cat' => $junctionTable],
+                'main_table.item_id = faq_cat.item_id',
+                ['category_id' => new \Magento\Framework\DB\Sql\Expression('GROUP_CONCAT(faq_cat.faq_category_id)')]
+            );
+            $this->getSelect()->group('main_table.item_id');
+            $this->setFlag('category_join_added', true);
+        }
+
+        parent::_renderFiltersBefore();
+    }
+}

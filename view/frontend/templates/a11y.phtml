@@ -1,0 +1,110 @@
+<script>
+(function () {
+    'use strict';
+    var seq = 0;
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var itemSelector = '.faq-item, .faq-embed-item, .faq-cat-item';
+
+    function hasBinding(el, prefixes) {
+        for (var i = 0; i < el.attributes.length; i++) {
+            for (var j = 0; j < prefixes.length; j++) {
+                if (el.attributes[i].name.indexOf(prefixes[j]) === 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    function isOpen(panel) {
+        return panel.style.display !== 'none' && window.getComputedStyle(panel).display !== 'none';
+    }
+
+    function enhance(root) {
+        var triggers = root.querySelectorAll('[role="button"][tabindex]');
+        Array.prototype.forEach.call(triggers, function (trigger) {
+            if (trigger.hasAttribute('data-faq-a11y')) {
+                return;
+            }
+            var item = trigger.closest(itemSelector);
+            var panel = trigger.nextElementSibling;
+            if (!item || !panel || trigger.parentElement !== item) {
+                return;
+            }
+            seq++;
+            trigger.setAttribute('data-faq-a11y', '1');
+            if (!trigger.id) {
+                trigger.id = 'faq-trigger-' + seq;
+            }
+            if (!panel.id) {
+                panel.id = 'faq-panel-' + seq;
+            }
+            trigger.setAttribute('aria-controls', panel.id);
+            panel.setAttribute('role', 'region');
+            panel.setAttribute('aria-labelledby', trigger.id);
+            if (!item.id && item.getAttribute('data-faq-id')) {
+                var anchor = 'faq-' + item.getAttribute('data-faq-id');
+                if (!document.getElementById(anchor)) {
+                    item.id = anchor;
+                }
+            }
+            if (!hasBinding(trigger, [':aria-expanded', 'x-bind:aria-expanded'])) {
+                var sync = function () {
+                    trigger.setAttribute('aria-expanded', isOpen(panel) ? 'true' : 'false');
+                };
+                sync();
+                new MutationObserver(sync).observe(panel, {attributes: true, attributeFilter: ['style', 'class']});
+            }
+            if (!hasBinding(trigger, ['@keydown.space', 'x-on:keydown.space'])) {
+                trigger.addEventListener('keydown', function (event) {
+                    if (event.key === ' ' || event.key === 'Spacebar') {
+                        event.preventDefault();
+                        trigger.click();
+                    }
+                });
+            }
+        });
+    }
+
+    function openFromHash() {
+        var id = window.location.hash ? decodeURIComponent(window.location.hash.slice(1)) : '';
+        var target = id ? document.getElementById(id) : null;
+        if (!target || !target.matches(itemSelector)) {
+            return;
+        }
+        var trigger = target.querySelector('[data-faq-a11y]');
+        if (trigger && trigger.getAttribute('aria-expanded') !== 'true') {
+            trigger.click();
+        }
+        target.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'center'});
+    }
+
+    function start() {
+        if (reduce && window.jQuery && window.jQuery.fx) {
+            window.jQuery.fx.off = true;
+        }
+        enhance(document);
+        if (!document.querySelector('[data-faq-a11y]') && !document.querySelector('.panth-faq-module')) {
+            return;
+        }
+        new MutationObserver(function (records) {
+            records.forEach(function (record) {
+                Array.prototype.forEach.call(record.addedNodes, function (node) {
+                    if (node.nodeType === 1) {
+                        enhance(node.parentElement || node);
+                    }
+                });
+            });
+        }).observe(document.body, {childList: true, subtree: true});
+        window.setTimeout(openFromHash, 600);
+        window.addEventListener('hashchange', openFromHash);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', start);
+    } else {
+        start();
+    }
+}());
+</script>
+<?php if (isset($hyvaCsp)) { $hyvaCsp->registerInlineScript(); } ?>

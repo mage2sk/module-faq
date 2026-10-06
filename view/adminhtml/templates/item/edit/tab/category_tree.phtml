@@ -1,0 +1,244 @@
+<?php
+/**
+ * Category Tree Template
+ *
+ * @var $block \Panth\Faq\Block\Adminhtml\Item\Edit\Tab\CategoryTree
+ */
+
+$selectedCategories = $block->getSelectedCategories();
+$fieldName = $block->getFieldName();
+?>
+
+<div class="category-tree-wrapper">
+    <div class="category-tree-search">
+        <input type="text"
+               id="category-tree-search"
+               placeholder="<?= $block->escapeHtmlAttr(__('Search categories...')) ?>"
+               class="admin__control-text"
+               style="width: 100%; margin-bottom: 10px;" />
+    </div>
+
+    <div id="category-tree" class="category-tree-container" style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;"></div>
+
+    <input type="hidden" name="<?= $block->escapeHtmlAttr($fieldName) ?>" id="selected-categories-input" value="" />
+</div>
+
+<style>
+.category-tree-container {
+    font-family: Arial, sans-serif;
+}
+
+.tree-node {
+    padding: 5px 0;
+    user-select: none;
+}
+
+.tree-node-content {
+    display: flex;
+    align-items: center;
+    padding: 3px 5px;
+    cursor: pointer;
+}
+
+.tree-node-content:hover {
+    background-color: #f5f5f5;
+}
+
+.tree-toggle {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 5px;
+    cursor: pointer;
+    text-align: center;
+    line-height: 16px;
+    font-size: 12px;
+}
+
+.tree-toggle.expanded::before {
+    content: '▼';
+}
+
+.tree-toggle.collapsed::before {
+    content: '▶';
+}
+
+.tree-toggle.no-children {
+    visibility: hidden;
+}
+
+.tree-checkbox {
+    margin-right: 8px;
+}
+
+.tree-label {
+    flex: 1;
+}
+
+.tree-children {
+    margin-left: 20px;
+    display: none;
+}
+
+.tree-children.expanded {
+    display: block;
+}
+
+.highlight {
+    background-color: #ffeb3b !important;
+}
+</style>
+
+<script>
+require([
+    'jquery',
+    'domReady!'
+], function($) {
+    'use strict';
+
+    var categoryTree = <?= /* @noEscape */ $block->getCategoryTreeJson() ?>;
+    var selectedCategories = <?= /* @noEscape */ json_encode($selectedCategories) ?>;
+    var fieldName = '<?= $block->escapeJs($fieldName) ?>';
+
+    console.log('Category Tree Data:', categoryTree);
+    console.log('Selected Categories:', selectedCategories);
+
+    function renderTree(nodes, container) {
+        nodes.forEach(function(node) {
+            var nodeDiv = $('<div>').addClass('tree-node').attr('data-category-id', node.id);
+
+            var contentDiv = $('<div>').addClass('tree-node-content');
+
+            // Toggle icon
+            var toggleSpan = $('<span>').addClass('tree-toggle');
+            if (node.children && node.children.length > 0) {
+                toggleSpan.addClass('collapsed');
+            } else {
+                toggleSpan.addClass('no-children');
+            }
+            contentDiv.append(toggleSpan);
+
+            // Checkbox
+            var checkbox = $('<input>')
+                .attr('type', 'checkbox')
+                .addClass('tree-checkbox')
+                .attr('data-category-id', node.id)
+                .val(node.id);
+
+            if (selectedCategories.indexOf(node.id) !== -1) {
+                checkbox.prop('checked', true);
+            }
+
+            contentDiv.append(checkbox);
+
+            // Label
+            var label = $('<span>').addClass('tree-label').text(node.text);
+            contentDiv.append(label);
+
+            nodeDiv.append(contentDiv);
+
+            // Children
+            if (node.children && node.children.length > 0) {
+                var childrenDiv = $('<div>').addClass('tree-children');
+                renderTree(node.children, childrenDiv);
+                nodeDiv.append(childrenDiv);
+            }
+
+            container.append(nodeDiv);
+        });
+    }
+
+    // Render the tree
+    var treeContainer = $('#category-tree');
+    renderTree(categoryTree, treeContainer);
+
+    // Toggle expand/collapse
+    $(document).on('click', '.tree-toggle', function(e) {
+        e.stopPropagation();
+        var toggle = $(this);
+        var node = toggle.closest('.tree-node');
+        var children = node.children('.tree-children');
+
+        if (toggle.hasClass('collapsed')) {
+            toggle.removeClass('collapsed').addClass('expanded');
+            children.addClass('expanded');
+        } else {
+            toggle.removeClass('expanded').addClass('collapsed');
+            children.removeClass('expanded');
+        }
+    });
+
+    // Handle checkbox changes
+    $(document).on('change', '.tree-checkbox', function() {
+        var checkbox = $(this);
+        var isChecked = checkbox.prop('checked');
+        var categoryId = checkbox.data('category-id');
+
+        // Update child checkboxes
+        var node = checkbox.closest('.tree-node');
+        node.find('.tree-children .tree-checkbox').prop('checked', isChecked);
+
+        updateSelectedCategories();
+    });
+
+    // Search functionality
+    $('#category-tree-search').on('input', function() {
+        var searchTerm = $(this).val().toLowerCase();
+
+        if (searchTerm === '') {
+            // Reset: show all nodes, collapse all
+            $('.tree-node').show();
+            $('.tree-children').removeClass('expanded');
+            $('.tree-toggle').removeClass('expanded').addClass('collapsed');
+            $('.tree-node-content').removeClass('highlight');
+            return;
+        }
+
+        // Hide all nodes first
+        $('.tree-node').hide();
+
+        // Find and show matching nodes
+        $('.tree-label').each(function() {
+            var label = $(this);
+            var text = label.text().toLowerCase();
+
+            if (text.indexOf(searchTerm) !== -1) {
+                var node = label.closest('.tree-node');
+
+                // Show this node
+                node.show();
+
+                // Highlight the match
+                label.parent().addClass('highlight');
+
+                // Show all parent nodes
+                node.parents('.tree-node').show();
+
+                // Expand all parent children containers
+                node.parents('.tree-children').addClass('expanded');
+
+                // Update parent toggles
+                node.parents('.tree-node').find('> .tree-node-content > .tree-toggle')
+                    .removeClass('collapsed').addClass('expanded');
+            } else {
+                label.parent().removeClass('highlight');
+            }
+        });
+    });
+
+    // Update hidden input with selected category IDs
+    function updateSelectedCategories() {
+        var selected = [];
+        $('.tree-checkbox:checked').each(function() {
+            selected.push($(this).val());
+        });
+        $('#selected-categories-input').val(JSON.stringify(selected));
+    }
+
+    // Initialize hidden input
+    updateSelectedCategories();
+
+    // Expand first level by default
+    $('#category-tree > .tree-node > .tree-node-content > .tree-toggle').trigger('click');
+});
+</script>

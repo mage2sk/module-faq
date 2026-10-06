@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="faq_styles"/>
+    <update handle="faq_schema"/>
+    <body>
+        <referenceBlock name="product.info.details">
+            <block class="Panth\Faq\Block\Product\Faq" name="product.faq" as="faq" template="Panth_Faq::product/faq.phtml" group="detailed_info" after="-">
+                <arguments>
+                    <argument name="title" xsi:type="string" translate="true">FAQ</argument>
+                    <argument name="sort_order" xsi:type="number">90</argument>
+                </arguments>
+            </block>
+        </referenceBlock>
+    </body>
+</page>

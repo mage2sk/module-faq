@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * FAQ Item Products Grid Layout
+ *
+ * @category  Panth
+ * @package   Panth_Faq
+ * @author    Panth
+ * @copyright Copyright (c) 2025 Panth
+ */
+-->
+<layout xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/layout_generic.xsd">
+    <container name="root">
+        <block class="Panth\Faq\Block\Adminhtml\Item\Edit\Tab\Product" name="faq.item.edit.tab.products"/>
+    </container>
+</layout>

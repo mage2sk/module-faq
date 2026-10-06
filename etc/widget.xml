@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Widget Configuration
+ *
+ * @category  Panth
+ * @package   Panth_Faq
+ * @author    Panth
+ * @copyright Copyright (c) 2025 Panth
+ */
+-->
+<widgets xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Widget:etc/widget.xsd">
+    <widget id="panth_faq_widget" class="Panth\Faq\Block\Widget\Faq">
+        <label translate="true">FAQ List</label>
+        <description translate="true">Display FAQs on CMS Pages</description>
+        <parameters>
+            <parameter name="title" xsi:type="text" visible="true">
+                <label translate="true">Title</label>
+                <description translate="true">Custom title for the FAQ section (optional)</description>
+            </parameter>
+            <parameter name="faq_items" xsi:type="multiselect" visible="true" source_model="Panth\Faq\Model\Config\Source\FaqItems">
+                <label translate="true">FAQ Items</label>
+                <description translate="true">Select specific FAQ items to display (leave empty to show all active FAQs)</description>
+            </parameter>
+            <parameter name="limit" xsi:type="text" visible="true">
+                <label translate="true">Number of FAQs to Display</label>
+                <description translate="true">Maximum number of FAQs to show (leave empty for all)</description>
+                <value>10</value>
+            </parameter>
+            <parameter name="show_view_all" xsi:type="select" visible="true">
+                <label translate="true">Show "View All FAQs" Link</label>
+                <description translate="true">Display link to main FAQ page</description>
+                <options>
+                    <option name="yes" value="1" selected="true">
+                        <label translate="true">Yes</label>
+                    </option>
+                    <option name="no" value="0">
+                        <label translate="true">No</label>
+                    </option>
+                </options>
+            </parameter>
+        </parameters>
+    </widget>
+</widgets>

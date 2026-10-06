@@ -1,0 +1,8 @@
+<?php
+/** @var \Panth\Faq\Block\CustomCss $block */
+$customCss = $block->getCustomCss();
+if ($customCss === '') {
+    return;
+}
+?>
+<style><?= /* @noEscape */ $customCss ?></style>
