@@ -87,11 +87,24 @@ class Item extends AbstractDb
 
     public function load(AbstractModel $object, $value, $field = null)
     {
+        $explicit = (int)$object->getData('store_scope_id') > 0;
         $scope = $this->resolveStoreScopeId($object);
         $result = parent::load($object, $value, $field);
         if ($scope > 0) {
             $object->setData('store_scope_id', $scope);
+            if ($explicit) {
+                $object->unsetData(StoreValueRow::IMPLICIT_SCOPE_KEY);
+            } else {
+                $object->setData(StoreValueRow::IMPLICIT_SCOPE_KEY, $scope);
+            }
             $this->mergeStoreOverrides($object);
+            if (!$explicit) {
+                $loaded = [];
+                foreach (self::SCOPED_FIELDS as $scopedField) {
+                    $loaded[$scopedField] = $object->getData($scopedField);
+                }
+                $object->setData(StoreValueRow::LOADED_VALUES_KEY, $loaded);
+            }
         }
         return $result;
     }
@@ -101,6 +114,9 @@ class Item extends AbstractDb
         $storeScopeId = (int)$object->getData('store_scope_id');
         if ($storeScopeId > 0 && (int)$object->getId() > 0) {
             $defaults = $this->loadDefaultValues((int)$object->getId());
+            if (StoreValueRow::isImplicit($object->getData(), $storeScopeId)) {
+                $defaults = StoreValueRow::baseRowValues(self::SCOPED_FIELDS, $object->getData(), $defaults);
+            }
             $snapshot = [];
             foreach (self::SCOPED_FIELDS as $field) {
                 $snapshot[$field] = $object->getData($field);
@@ -156,7 +172,7 @@ class Item extends AbstractDb
     protected function saveStoreValues(AbstractModel $object): self
     {
         $storeId = (int)$object->getData('store_scope_id');
-        if ($storeId <= 0) {
+        if ($storeId <= 0 || StoreValueRow::isImplicit($object->getData(), $storeId)) {
             return $this;
         }
         $itemId = (int)$object->getId();
@@ -164,25 +180,22 @@ class Item extends AbstractDb
             return $this;
         }
 
-        $useDefault = (array)$object->getData('use_default');
-        $row = ['item_id' => $itemId, 'store_id' => $storeId];
-        $allNull = true;
-        foreach (self::SCOPED_FIELDS as $field) {
-            if (in_array($field, $useDefault, true)) {
-                $row[$field] = null;
-            } else {
-                $value = $object->getData($field);
-                $row[$field] = ($value === '' || $value === null) ? null : $value;
-                if ($row[$field] !== null) {
-                    $allNull = false;
-                }
-            }
-        }
+        $values = StoreValueRow::build(
+            self::SCOPED_FIELDS,
+            $object->getData(),
+            $this->loadDefaultValues($itemId),
+            StoreValueRow::useDefaultFields(
+                $object->getData('use_default'),
+                self::SCOPED_FIELDS,
+                (array)$object->getData('store_default_values'),
+                $object->getData()
+            )
+        );
 
         $connection = $this->getConnection();
         $table = $this->getTable(self::ITEM_VALUE_TABLE);
 
-        if ($allNull) {
+        if (StoreValueRow::inheritsEverything($values)) {
             $connection->delete($table, [
                 'item_id = ?' => $itemId,
                 'store_id = ?' => $storeId,
@@ -192,7 +205,7 @@ class Item extends AbstractDb
 
         $connection->insertOnDuplicate(
             $table,
-            $row,
+            ['item_id' => $itemId, 'store_id' => $storeId] + $values,
             self::SCOPED_FIELDS
         );
         return $this;
