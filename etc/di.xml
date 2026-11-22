@@ -134,4 +134,12 @@
         <plugin name="panth_faq_product_data_provider" type="Panth\Faq\Plugin\Product\Ui\DataProvider" sortOrder="10"/>
     </type>
 
+    <type name="Magento\Framework\Console\CommandList">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="panth_faq_clean_store_values" xsi:type="object">Panth\Faq\Console\Command\CleanStoreValues</item>
+            </argument>
+        </arguments>
+    </type>
+
 </config>

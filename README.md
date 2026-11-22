@@ -184,7 +184,7 @@ Styles: `view/frontend/web/css/faq.css` (loaded on Hyva) and `view/frontend/web/
 
 ## Developer Notes
 
-- Module name: `Panth_Faq`; Composer package: `mage2kishan/module-faq`; PHP namespace: `Panth\Faq`; version 1.3.2.
+- Module name: `Panth_Faq`; Composer package: `mage2kishan/module-faq`; PHP namespace: `Panth\Faq`; version 1.3.13.
 - Service contracts: `Panth\Faq\Api\ItemRepositoryInterface` and `Panth\Faq\Api\CategoryRepositoryInterface` (`save`, `getById`, `getList`, `delete`, `deleteById`) with the data interfaces `Api\Data\ItemInterface` and `Api\Data\CategoryInterface`. Preferences are set in `etc/di.xml`. No `webapi.xml` is shipped, so there are no REST endpoints.
 - Configuration access: `Panth\Faq\Helper\Data` (`isEnabled`, `getFaqRoute`, `isProductPageEnabled`, `isCategoryPageEnabled`, `isCmsPageEnabled`, `isSchemaEnabled`, `getConfigValue`, `renderRichText`).
 - Frontend blocks: `Block\Index\Index`, `Block\Index\View`, `Block\Category\View`, `Block\Product\Faq`, `Block\Category\Faq`, `Block\Page\Faq`, `Block\Widget\Faq`, `Block\Schema`, `Block\CustomCss`.
@@ -194,6 +194,8 @@ Styles: `view/frontend/web/css/faq.css` (loaded on Hyva) and `view/frontend/web/
 - Plugin: `Plugin\Product\Ui\DataProvider` (after `getData` on `Magento\Catalog\Ui\DataProvider\Product\Form\ProductDataProvider`) adds the assigned FAQ item ids as `faq_items` to the product form data.
 - Virtual types: `Panth\Faq\CategoryIconImageUploader` (category icon uploads), `Panth\Faq\Model\ResourceModel\Category\Grid\Collection` (category grid data source) and `Panth\Faq\Ui\ItemGridDataProvider` with `ItemGridReporting` and `ItemGridFilterPool` (item grid keyword search through `Ui\Component\Listing\LikeFulltextFilter`), and `Panth\Faq\Ui\CategoryGridDataProvider` with `CategoryGridReporting`, `CategoryGridFilterPool` and `CategoryLikeFulltextFilter` (category grid keyword search).
 - Cache identities: `Model\Item` and `Model\Category` implement `IdentityInterface`; item identities include `cat_p_*`, `cat_c_*` and `cms_p_*` tags of the assigned products, catalog categories and CMS pages. Deleting an item or category also deletes its URL rewrites.
+- Store view values: a value is written to `panth_faq_item_value` / `panth_faq_category_value` only when the model has `store_scope_id` set explicitly. A model loaded on the storefront (store view taken from the request) never writes a store view row when saved: fields changed in code are saved to the default values and the other scoped fields keep their default values. Values equal to the default value are stored as NULL (inherit), and a row is deleted when every field inherits.
+- Console command: `bin/magento panth:faq:clean-store-values [--dry-run]` clears store view values that repeat the default value and deletes rows that end up empty.
 - Logging: `Logger\Logger` writes to `var/log/faq.log`.
 - Data patch: `Setup\Patch\Data\ConvertTablesToUtf8mb4` converts the module tables to `utf8mb4_unicode_ci`.
 - ACL resources: `Panth_Faq::faq`, `Panth_Faq::item`, `Panth_Faq::item_save`, `Panth_Faq::item_delete`, `Panth_Faq::category`, `Panth_Faq::category_save`, `Panth_Faq::category_delete`, `Panth_Faq::config`.

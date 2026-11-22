@@ -10,6 +10,7 @@ use Magento\Framework\Event\ManagerInterface;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Panth\Faq\Model\ResourceModel\Category as CategoryResource;
+use Panth\Faq\Model\ResourceModel\StoreValueRow;
 use Panth\Faq\Test\Unit\EntityTrait;
 use PHPUnit\Framework\TestCase;
 
@@ -172,5 +173,40 @@ class CategoryTest extends TestCase
             [['delete', 'pfx_url_rewrite', ['entity_type = ?' => 'faq_category', 'entity_id = ?' => 4]]],
             $this->writes
         );
+    }
+
+    public function testSavingAStorefrontLoadedCategoryWritesNoStoreRow(): void
+    {
+        $resource = $this->resource();
+        $category = $this->newCategory();
+        $this->rowResults = [['category_id' => 4, 'name' => 'Default'], ['name' => 'Store name']];
+        $resource->load($category, 4, 'category_id');
+        $this->writes = [];
+
+        $this->assertSame(6, $category->getData(StoreValueRow::IMPLICIT_SCOPE_KEY));
+        $this->invoke($resource, 'saveStoreValues', $category);
+
+        $this->assertSame([], $this->writes);
+    }
+
+    public function testCategoryKeyedUseDefaultAndDefaultCopiesAreInherited(): void
+    {
+        $resource = $this->resource();
+        $category = $this->newCategory([
+            'category_id' => 4,
+            'store_scope_id' => 6,
+            'name' => 'Store name',
+            'description' => 'Same',
+            'icon' => 'x',
+            'use_default' => ['icon' => 1, 'name' => 0],
+        ]);
+        $this->rowResults = [['name' => 'Default', 'description' => 'Same', 'icon' => 'y']];
+
+        $this->invoke($resource, 'saveStoreValues', $category);
+
+        $upsert = array_values(array_filter($this->writes, static fn ($w) => $w[0] === 'insertOnDuplicate'))[0];
+        $this->assertSame('Store name', $upsert[2]['name']);
+        $this->assertNull($upsert[2]['description']);
+        $this->assertNull($upsert[2]['icon']);
     }
 }

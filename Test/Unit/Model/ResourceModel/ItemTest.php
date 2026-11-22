@@ -11,6 +11,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Panth\Faq\Model\ResourceModel\Item as ItemResource;
+use Panth\Faq\Model\ResourceModel\StoreValueRow;
 use Panth\Faq\Test\Unit\EntityTrait;
 use PHPUnit\Framework\TestCase;
 
@@ -343,5 +344,124 @@ class ItemTest extends TestCase
             [['delete', 'pfx_url_rewrite', ['entity_type = ?' => 'faq_item', 'entity_id = ?' => 3]]],
             $this->writes
         );
+    }
+
+    private function upserts(): array
+    {
+        return array_values(array_filter($this->writes, static fn ($w) => $w[0] === 'insertOnDuplicate'));
+    }
+
+    public function testStorefrontLoadMarksTheScopeAsImplicit(): void
+    {
+        $resource = $this->resource();
+        $item = $this->newItem();
+        $this->rowResults = [
+            ['item_id' => 3, 'question' => 'Default Q', 'answer' => 'Default A'],
+            ['question' => 'Store Q'],
+        ];
+
+        $resource->load($item, 3, 'item_id');
+
+        $this->assertSame(1, $item->getData('store_scope_id'));
+        $this->assertSame(1, $item->getData(StoreValueRow::IMPLICIT_SCOPE_KEY));
+        $this->assertSame('Store Q', $item->getQuestion());
+    }
+
+    public function testExplicitScopeLoadIsNotImplicit(): void
+    {
+        $resource = $this->resource();
+        $item = $this->newItem(['store_scope_id' => 2]);
+        $this->rowResults = [['item_id' => 3, 'question' => 'Default Q'], []];
+
+        $resource->load($item, 3, 'item_id');
+
+        $this->assertSame(2, $item->getData('store_scope_id'));
+        $this->assertFalse($item->hasData(StoreValueRow::IMPLICIT_SCOPE_KEY));
+    }
+
+    public function testSavingAStorefrontLoadedItemWritesNoStoreRow(): void
+    {
+        $resource = $this->resource();
+        $item = $this->newItem();
+        $this->rowResults = [['item_id' => 3, 'question' => 'Default Q', 'answer' => 'Default A'], []];
+        $resource->load($item, 3, 'item_id');
+        $this->writes = [];
+
+        $item->setData('view_count', 10);
+        $this->invoke($resource, 'saveStoreValues', $item);
+
+        $this->assertSame([], $this->writes, 'a storefront save must not copy every field into a store row');
+    }
+
+    public function testKeyedUseDefaultFromAStoreScopedLoadIsHonoured(): void
+    {
+        $resource = $this->resource();
+        $item = $this->newItem([
+            'item_id' => 3,
+            'store_scope_id' => 2,
+            'question' => 'Store Q',
+            'answer' => 'Default A',
+            'use_default' => ['answer' => 1, 'url_key' => 1, 'question' => 0],
+        ]);
+
+        $this->invoke($resource, 'saveStoreValues', $item);
+
+        $row = $this->upserts()[0][2];
+        $this->assertSame('Store Q', $row['question']);
+        $this->assertNull($row['answer']);
+        $this->assertNull($row['url_key']);
+    }
+
+    public function testValuesEqualToTheDefaultAreStoredAsInherit(): void
+    {
+        $resource = $this->resource();
+        $item = $this->newItem([
+            'item_id' => 3,
+            'store_scope_id' => 2,
+            'question' => 'Store Q',
+            'answer' => 'Default A',
+            'is_active' => 1,
+        ]);
+        $this->rowResults = [['question' => 'Default Q', 'answer' => 'Default A', 'is_active' => '1']];
+
+        $this->invoke($resource, 'saveStoreValues', $item);
+
+        $row = $this->upserts()[0][2];
+        $this->assertSame('Store Q', $row['question']);
+        $this->assertNull($row['answer']);
+        $this->assertNull($row['is_active']);
+    }
+
+    public function testAFullCopyOfTheDefaultsDeletesTheStoreRow(): void
+    {
+        $resource = $this->resource();
+        $defaults = ['question' => 'Q', 'answer' => 'A', 'url_key' => 'q', 'is_active' => '1', 'show_on_main' => '0'];
+        $item = $this->newItem(['item_id' => 3, 'store_scope_id' => 2] + $defaults);
+        $this->rowResults = [$defaults];
+
+        $this->invoke($resource, 'saveStoreValues', $item);
+
+        $this->assertSame(
+            [['delete', 'pfx_panth_faq_item_value', ['item_id = ?' => 3, 'store_id = ?' => 2]]],
+            $this->writes
+        );
+    }
+
+    public function testStorefrontSaveWritesChangedFieldsToTheBaseRowOnly(): void
+    {
+        $resource = $this->resource();
+        $item = $this->newItem();
+        $this->rowResults = [
+            ['item_id' => 3, 'question' => 'Default Q', 'answer' => 'Default A'],
+            ['question' => 'Store Q', 'answer' => 'Store A'],
+        ];
+        $resource->load($item, 3, 'item_id');
+        $item->setData('answer', 'Edited in code');
+        $this->rowResults = [['question' => 'Default Q', 'answer' => 'Default A']];
+
+        $this->invoke($resource, '_beforeSave', $item);
+
+        $this->assertSame('Default Q', $item->getQuestion(), 'store view text must not reach the base row');
+        $this->assertSame('Edited in code', $item->getAnswer(), 'a change made in code is saved, not lost');
     }
 }
