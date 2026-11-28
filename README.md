@@ -6,6 +6,8 @@ The module ships two template sets: Alpine.js templates for Hyva and vanilla Jav
 
 Product page: [kishansavaliya.com/magento-2-faq.html](https://kishansavaliya.com/magento-2-faq.html)
 
+Built by [Kishan Savaliya](https://kishansavaliya.com/about). Need it installed or customised, or need other Magento 2 work? [Hire me](https://kishansavaliya.com/hire-me).
+
 ![FAQ page on the storefront](docs/screenshots/01-frontend-faq-page.png)
 
 ## Features
@@ -216,7 +218,7 @@ Disabling and removing the package does not drop the `panth_faq_*` tables, the `
 ## Support
 
 - Product page: [kishansavaliya.com/magento-2-faq.html](https://kishansavaliya.com/magento-2-faq.html)
-- Contact form: [kishansavaliya.com/contact](https://kishansavaliya.com/contact)
+- Contact: [kishansavaliya.com/contact](https://kishansavaliya.com/contact)
 - Email: kishansavaliyakb@gmail.com
 - Bug reports: [GitHub issues](https://github.com/mage2sk/module-faq/issues)
 
